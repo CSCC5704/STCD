@@ -1,6 +1,8 @@
 package cs5704.project;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MethodSimilarity {
@@ -19,7 +21,7 @@ public class MethodSimilarity {
 	
 	public String str1, str2;
 	public TokenList tokenList1, tokenList2;
-	
+		
 	// calculate the similarity of both TokenLists
 	public double tokenListSim(TokenList tList1, TokenList tList2) {
 		double tokenListDis = 0;
@@ -129,7 +131,10 @@ public class MethodSimilarity {
 	}
 	
 	// code clone detector for a single java file
-	public void simDetector(MethodList mList) {
+	public List<Result> simDetector(MethodList mList) {
+		
+		List<Result> rList = new ArrayList<Result>();
+		
 		for(int index1 = 0; index1 < mList.size() - 1; index1++) {
 			for(int index2 = index1 + 1; index2 < mList.size(); index2++) {
 				methodSimilarity = methodVectorSim(mList.getMethodVector(index1), mList.getMethodVector(index2));
@@ -137,27 +142,29 @@ public class MethodSimilarity {
 				if(methodSimilarity >= detectThreshold
 						&& mList.getMethodVector(index1).endLineNumber - mList.getMethodVector(index1).startLineNumber > 7
 						&& mList.getMethodVector(index2).endLineNumber - mList.getMethodVector(index2).startLineNumber > 7) {
-					//System.out.println("1");
-					System.out.println("Clone Group " + countID + " --> " +
-							"Similarity :" + String.format("%.4f", methodSimilarity));
-					System.out.printf("%15s%15d%15d\n", 
-							mList.getMethodVector(index1).methodName,
-							mList.getMethodVector(index1).startLineNumber,
-							mList.getMethodVector(index1).endLineNumber);
-					System.out.printf("%15s%15d%15d\n", 
-							mList.getMethodVector(index2).methodName,
-							mList.getMethodVector(index2).startLineNumber,
-							mList.getMethodVector(index2).endLineNumber);
+					Result re = new Result();
+					re.index = countID;
+					re.similarity = methodSimilarity;
+					re.methodName1 = mList.getMethodVector(index1).methodName;
+					re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
+					re.endLineNum1 = mList.getMethodVector(index1).endLineNumber;
+					re.methodName2 = mList.getMethodVector(index2).methodName;
+					re.startLineNum2 = mList.getMethodVector(index2).startLineNumber;
+					re.endLineNum2 = mList.getMethodVector(index2).endLineNumber;
+					
+					rList.add(re);
 					countID++;
 				}
-				//else
-				//	System.out.println(0);
 			}
 		}
+		return rList;
 	}
 	
 	// code clone detector for two java files
-	public void simDetector(MethodList mList1, MethodList mList2) {
+	public List<Result> simDetector(MethodList mList1, MethodList mList2) {
+		
+		List<Result> rList = new ArrayList<Result>();
+
 		for(int index1 = 0; index1 < mList1.size(); index1++) {
 			for(int index2 = 0; index2 < mList2.size(); index2++) {
 				methodSimilarity = methodVectorSim(mList1.getMethodVector(index1), mList2.getMethodVector(index2));
@@ -165,19 +172,21 @@ public class MethodSimilarity {
 				if(methodSimilarity >= detectThreshold
 						&& mList1.getMethodVector(index1).endLineNumber - mList1.getMethodVector(index1).startLineNumber > 7
 						&& mList2.getMethodVector(index2).endLineNumber - mList2.getMethodVector(index2).startLineNumber > 7) {
-					System.out.println("Clone Group " + countID + " --> " +
-							"Similarity :" + String.format("%.4f", methodSimilarity));
-					System.out.printf("%15s%15d%15d\n", 
-							mList1.getMethodVector(index1).methodName,
-							mList1.getMethodVector(index1).startLineNumber,
-							mList1.getMethodVector(index1).endLineNumber);
-					System.out.printf("%15s%15d%15d\n", 
-							mList2.getMethodVector(index2).methodName,
-							mList2.getMethodVector(index2).startLineNumber,
-							mList2.getMethodVector(index2).endLineNumber);
+					Result re = new Result();
+					re.index = countID;
+					re.similarity = methodSimilarity;
+					re.methodName1 = mList1.getMethodVector(index1).methodName;
+					re.startLineNum1 = mList1.getMethodVector(index1).startLineNumber;
+					re.endLineNum1 = mList1.getMethodVector(index1).endLineNumber;
+					re.methodName2 = mList2.getMethodVector(index2).methodName;
+					re.startLineNum2 = mList2.getMethodVector(index2).startLineNumber;
+					re.endLineNum2 = mList2.getMethodVector(index2).endLineNumber;
+					
+					rList.add(re);
 					countID++;
 				}
 			}
 		}
+		return rList;
 	}
 }

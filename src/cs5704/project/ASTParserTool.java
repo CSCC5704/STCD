@@ -18,9 +18,6 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class ASTParserTool {
 	
-	// ArrayList of InfoVector
-	public MethodList methodVectorList = new MethodList();
-	
 	// AST Parser returns the structure of the source code
 	public CompilationUnit getCompilationUnit(String javaFilePath){  
 		byte[] input = null;
@@ -52,6 +49,8 @@ public class ASTParserTool {
 	// get methods in source code
 	public MethodList parseMethod(CompilationUnit result) {
 		
+		MethodList methodVectorList = new MethodList();
+		
 		List types = result.types();
 		TypeDeclaration typeDec = (TypeDeclaration) types.get(0);
 		
@@ -59,13 +58,13 @@ public class ASTParserTool {
 		
 		for (MethodDeclaration method : methodDec) {
 			// look into each method
-			visitMethod(result, method);
+			visitMethod(result, method, methodVectorList);
 		}
 		
 		return methodVectorList;
 	}
 	
-	public void visitMethod(CompilationUnit result, MethodDeclaration method) {
+	public void visitMethod(CompilationUnit result, MethodDeclaration method, MethodList methodVectorList) {
 		
 		// get method start line #
 		int startLineNumber = result.getLineNumber(method.getStartPosition());

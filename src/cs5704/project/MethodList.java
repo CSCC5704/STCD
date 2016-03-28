@@ -22,6 +22,10 @@ public class MethodList {
 		return methodList.size();
 	}
 	
+	public void clear() {
+		methodList.clear();
+	}
+	
 	// print
 	public void print() {
 		for(int i = 0; i < methodList.size(); i++)
