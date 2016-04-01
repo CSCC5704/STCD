@@ -49,7 +49,7 @@ public class MethodSimilarity {
 				tokenListDis += entry2.getValue();
 			tokenCount2 += entry2.getValue();
 		}
-		return 1 - tokenListDis / Math.max(tokenCount1, tokenCount2);
+		return 1 - tokenListDis / (tokenCount1 + tokenCount2);
 	}
 	
 	/*

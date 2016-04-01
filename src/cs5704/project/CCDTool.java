@@ -3,6 +3,7 @@ package cs5704.project;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.FileDialog;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -59,15 +60,16 @@ public class CCDTool extends JFrame {
 
 	/**
 	 * Launch the application.
+	 * @throws UnsupportedLookAndFeelException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
 	 */
-	public static void main(String[] args) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-				| UnsupportedLookAndFeelException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+		
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiTeX");
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -98,19 +100,20 @@ public class CCDTool extends JFrame {
 		mntmOpenFile = new JMenuItem("Open File...");
 		mntmOpenFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setCurrentDirectory(new File("C:\\Users\\liuqing\\git\\Code\\CodeCloneDetection\\testfiles\\"));
-				int result = fileChooser.showOpenDialog(null);
-				if (result == JFileChooser.APPROVE_OPTION) {
-				    File selectedFile = fileChooser.getSelectedFile();
+				FileDialog fileChooser = new FileDialog(CCDTool.this, "Choose a file", FileDialog.LOAD);
+				fileChooser.setDirectory("~/git/SourceCodewithUI/TestFiles/");
+				fileChooser.setFile("*.java");
+				fileChooser.setVisible(true);
+				if(fileChooser.getFile() != null) {
+					String fileChooserPath = fileChooser.getDirectory() + fileChooser.getFile();
 				    try {
 				    	if(sourceDis1Blank) {
-				    		filePath1 = selectedFile.getAbsolutePath();
+				    		filePath1 = fileChooserPath;
 				    		sourceDisplay(sourceDis1, filePath1);
 				    		sourceDis1Blank = false;
 				    	}
 				    	else if(sourceDis2Blank) {
-				    		filePath2 = selectedFile.getAbsolutePath();
+				    		filePath2 = fileChooserPath;
 				    		if(filePath2.equals(filePath1))
 				    			isSingleFile = true;
 				    		else
@@ -120,7 +123,7 @@ public class CCDTool extends JFrame {
 				    	}
 				    	else {
 				    		clearDisplay();
-				    		filePath1 = selectedFile.getAbsolutePath();
+				    		filePath1 = fileChooserPath;
 				    		sourceDisplay(sourceDis1, filePath1);
 				    		sourceDis1Blank = false;
 				    	}
@@ -140,14 +143,6 @@ public class CCDTool extends JFrame {
 			}
 		});
 		mnBasic.add(mntmClearFiles);
-		
-		mntmQuit = new JMenuItem("Quit");
-		mntmQuit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				System.exit(0);
-			}
-		});
-		mnBasic.add(mntmQuit);
 		
 		JMenu mnRun = new JMenu("Run");
 		menuBar.add(mnRun);
@@ -407,12 +402,12 @@ public class CCDTool extends JFrame {
 	
 	public void cloneMethodDisplay() {
 		if (outputDis.getSelectedRow() > -1) {
-			int colorLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 3);
-			int scrollLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 4);
+			final int colorLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 3);
+			final int scrollLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 4);
 			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(0, 0, true));
 			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(scrollLine1+ 10, 0, true));
-			int colorLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 6);
-			int scrollLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 7);
+			final int colorLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 6);
+			final int scrollLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 7);
 			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(0, 0, true));
 			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(scrollLine2 + 10, 0, true));
 			
