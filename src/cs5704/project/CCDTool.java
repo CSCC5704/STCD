@@ -118,8 +118,12 @@ public class CCDTool extends JFrame {
 				    		sourceDisplay(sourceDis2, filePath2);
 				    		sourceDis2Blank = false;
 				    	}
-				    	else
-				    		clearFiles(sourceDis1, sourceDis2);
+				    	else {
+				    		clearDisplay();
+				    		filePath1 = selectedFile.getAbsolutePath();
+				    		sourceDisplay(sourceDis1, filePath1);
+				    		sourceDis1Blank = false;
+				    	}
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -132,7 +136,7 @@ public class CCDTool extends JFrame {
 		mntmClearFiles = new JMenuItem("Clear Files");
 		mntmClearFiles.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				clearFiles(sourceDis1, sourceDis2);
+				clearDisplay();
 			}
 		});
 		mnBasic.add(mntmClearFiles);
@@ -151,8 +155,6 @@ public class CCDTool extends JFrame {
 		mntmFindMethods = new JMenuItem("Find Methods");
 		mntmFindMethods.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				
-				clearMethods(methodDis1, methodDis2);
 				
 				methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
 				methodDisplay(methodDis1, methodVectorList1);
@@ -303,11 +305,11 @@ public class CCDTool extends JFrame {
 		outputDis = new JTable(outputModel);
 		outputDis.setFillsViewportHeight(true);
 		outputDis.getColumnModel().getColumn(0).setPreferredWidth(30);
-		outputDis.getColumnModel().getColumn(1).setPreferredWidth(40);
-		outputDis.getColumnModel().getColumn(2).setPreferredWidth(160);
+		outputDis.getColumnModel().getColumn(1).setPreferredWidth(50);
+		outputDis.getColumnModel().getColumn(2).setPreferredWidth(180);
 		outputDis.getColumnModel().getColumn(3).setPreferredWidth(60);
 		outputDis.getColumnModel().getColumn(4).setPreferredWidth(50);
-		outputDis.getColumnModel().getColumn(5).setPreferredWidth(160);
+		outputDis.getColumnModel().getColumn(5).setPreferredWidth(180);
 		outputDis.getColumnModel().getColumn(6).setPreferredWidth(60);
 		outputDis.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		outputScrollPanel.setViewportView(outputDis);
@@ -332,11 +334,37 @@ public class CCDTool extends JFrame {
 	    fis.close();
 	}
 	
-	public void clearFiles(JTable tb1, JTable tb2) {
-		DefaultTableModel model = (DefaultTableModel)tb1.getModel();
+	public void clearDisplay() {
+		DefaultTableModel model = (DefaultTableModel)sourceDis1.getModel();
 		model.setRowCount(0);
-		model = (DefaultTableModel)tb2.getModel();
+		model = (DefaultTableModel)sourceDis2.getModel();
 		model.setRowCount(0);
+		model = (DefaultTableModel)methodDis1.getModel();
+		model.setRowCount(0);
+		model = (DefaultTableModel)methodDis2.getModel();
+		model.setRowCount(0);
+		model = (DefaultTableModel)outputDis.getModel();
+		model.setRowCount(0);
+		
+		sourceDis1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                comp.setBackground(Color.WHITE);
+                return comp;
+            }  
+        });
+		sourceDis1.updateUI();
+		
+		sourceDis2.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                comp.setBackground(Color.WHITE);
+                return comp;
+            }  
+        });
+		sourceDis2.updateUI();
 		
 		sourceDis1Blank = true;
 		sourceDis2Blank = true;
@@ -348,17 +376,12 @@ public class CCDTool extends JFrame {
 	}
 	
 	public void methodDisplay(JTable tb, MethodList mList) {
+    	DefaultTableModel model = (DefaultTableModel)tb.getModel();
+    	model.setRowCount(0);
 		for(int index = 0; index < mList.size(); index++) {
-	    	DefaultTableModel model = (DefaultTableModel)tb.getModel();
+	    	model = (DefaultTableModel)tb.getModel();
 	    	model.addRow(new Object[]{index + 1, mList.getMethodVector(index).methodName});
 		}
-	}
-	
-	public void clearMethods(JTable tb1, JTable tb2) {
-		DefaultTableModel model = (DefaultTableModel)tb1.getModel();
-		model.setRowCount(0);
-		model = (DefaultTableModel)tb2.getModel();
-		model.setRowCount(0);
 	}
 	
 	public void cloneListDisplay(JTable tb) {
@@ -386,12 +409,12 @@ public class CCDTool extends JFrame {
 		if (outputDis.getSelectedRow() > -1) {
 			int colorLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 3);
 			int scrollLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 4);
-			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(colorLine1, 0, true));
-			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(scrollLine1, 0, true));
+			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(0, 0, true));
+			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(scrollLine1+ 10, 0, true));
 			int colorLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 6);
 			int scrollLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 7);
-			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(colorLine2, 0, true));
-			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(scrollLine2, 0, true));
+			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(0, 0, true));
+			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(scrollLine2 + 10, 0, true));
 			
 			sourceDis1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 	            @Override

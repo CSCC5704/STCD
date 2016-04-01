@@ -11,19 +11,19 @@ public class MethodSimilarity {
 	public double simTokenType, simTokenKeyword, simTokenOtherStr;
 	public double simTokenMarker, simTokenOperator, simTokenOtherChar;
 	public double simTokenNum;
-	public double w1 = 0.1, w2 = 0.1, w3 = 0.1, w4 = 0.15, w5 = 0.3, w6 = 0.05, w7 = 0.1, w8 = 0.05, w9 = 0.05;
+	public double w1 = 0.1, w2 = 0.1, w3 = 0.1, w4 = 0.15, w5 = 0.15, w6 = 0.1, w7 = 0.1, w8 = 0.1, w9 = 0.1;
 	public double methodSimilarity;
 	
 	//public double tokenThreshold = 0.7;
-	public double detectThreshold = 0.5;
-	
-	public static int countID = 1;
-	
+	public double detectThreshold = 0.6;
+		
 	public String str1, str2;
 	public TokenList tokenList1, tokenList2;
 		
 	// calculate the similarity of both TokenLists
 	public double tokenListSim(TokenList tList1, TokenList tList2) {
+		int tokenCount1 = 0;
+		int tokenCount2 = 0;
 		double tokenListDis = 0;
 		Map<String, Integer> tVector1 = new HashMap<String, Integer>();
 		Map<String, Integer> tVector2 = new HashMap<String, Integer>();
@@ -37,17 +37,19 @@ public class MethodSimilarity {
 		for (Map.Entry<String, Integer> entry1 : tVector1.entrySet()) {
 			if(tVector2.containsKey(entry1.getKey()))
 				// if list1 and list2 have the same tokenName, then calculate (tokenCount1-tokenCount2)^2
-				tokenListDis += Math.pow((entry1.getValue() - tVector2.get(entry1.getKey())), 2);
+				tokenListDis += Math.abs(entry1.getValue() - tVector2.get(entry1.getKey()));
 			else
 				// if list2 does not contain the tokenName of list1, then calculate (tokenCount1 - 0)^2
-				tokenListDis += entry1.getValue() * entry1.getValue();
+				tokenListDis += entry1.getValue();
+			tokenCount1 += entry1.getValue();
 		}
 		for (Map.Entry<String, Integer> entry2 : tVector2.entrySet()) {
 			if(!tVector1.containsKey(entry2.getKey()))
 				// if list1 does not contain the tokenName of list2, then calculate (tokenCount2 - 0)^2
-				tokenListDis += entry2.getValue() * entry2.getValue();
+				tokenListDis += entry2.getValue();
+			tokenCount2 += entry2.getValue();
 		}
-		return 1.0 / (1 + Math.sqrt(tokenListDis));
+		return 1 - tokenListDis / Math.max(tokenCount1, tokenCount2);
 	}
 	
 	/*
@@ -133,6 +135,7 @@ public class MethodSimilarity {
 	// code clone detector for a single java file
 	public List<Result> simDetector(MethodList mList) {
 		
+		int countID = 1;
 		List<Result> rList = new ArrayList<Result>();
 		
 		for(int index1 = 0; index1 < mList.size() - 1; index1++) {
@@ -163,6 +166,7 @@ public class MethodSimilarity {
 	// code clone detector for two java files
 	public List<Result> simDetector(MethodList mList1, MethodList mList2) {
 		
+		int countID = 1;
 		List<Result> rList = new ArrayList<Result>();
 
 		for(int index1 = 0; index1 < mList1.size(); index1++) {

@@ -67,10 +67,10 @@ public class ASTParserTool {
 	public void visitMethod(CompilationUnit result, MethodDeclaration method, MethodList methodVectorList) {
 		
 		// get method start line #
-		int startLineNumber = result.getLineNumber(method.getStartPosition());
+		int startLineNumber = result.getLineNumber(method.getBody().getStartPosition());
 		
 		// get method end line #
-		int endLineNumber = result.getLineNumber(method.getStartPosition() + method.getLength()) - 1;
+		int endLineNumber = result.getLineNumber(method.getBody().getStartPosition() + method.getBody().getLength()) - 1;
 				
 		// get method name
 		String methodName = method.getName().toString();
