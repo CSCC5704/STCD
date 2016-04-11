@@ -1,365 +1,559 @@
 package cs5704.project;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.EventQueue;
-import java.awt.FileDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Text;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.BoxLayout;
-import javax.swing.JFileChooser;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.Box;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.event.ActionEvent;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 
-@SuppressWarnings("serial")
-public class CCDTool extends JFrame {
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 
-	private GridBagLayout gbl_contentPane;
-	private JPanel contentPane;
-	private JMenuItem mntmOpenFile, mntmClearFiles, mntmQuit, mntmFindMethods, mntmFindCloneCode;
-	private JPanel sourcePanel1, sourcePanel2, methodPanel1, methodPanel2, outputPanel;
-	private JScrollPane sourceScrollPanel1, sourceScrollPanel2, methodScrollPanel1, methodScrollPanel2, outputScrollPanel;
-	private JTable sourceDis1, sourceDis2, methodDis1, methodDis2, outputDis;
+public class CCDTool{
+	private static Text text_SelectFile;
+	private static Table table_File1;
+	private static Table table_File2;
+	private static Table table_Method1;
+	private static Table table_Method2;
+	private static Table table_Results;
 	
-	private DefaultTableModel sourceModel1, sourceModel2, methodModel1, methodModel2, outputModel;
+	public static int train_HiddenNodes, train_TrainTimes;
+	public static float train_Threshold;
 	
-	private boolean sourceDis1Blank = true;
-	private boolean sourceDis2Blank = true;
+	private static boolean sourceDis1Blank = true;
+	private static boolean sourceDis2Blank = true;
 	
-	private String filePath1 = "", filePath2 = "";
-	private boolean isSingleFile = true;
+	private static String filePath1 = "", filePath2 = "";
+	private static boolean isSingleFile = true;
 	
 	public static ASTParserTool parserTool = new ASTParserTool();
-	public MethodList methodVectorList1 = new MethodList();
-	public MethodList methodVectorList2 = new MethodList();
+	public static MethodList methodVectorList1 = new MethodList();
+	public static MethodList methodVectorList2 = new MethodList();
 
-	/**
-	 * Launch the application.
-	 * @throws UnsupportedLookAndFeelException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 */
-	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+	public static void main(String[] args) {
 		
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
-		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiTeX");
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		// TODO Auto-generated method stub		
+		Display display = new Display();
+		Shell shell = new Shell(display);
+		shell.setMaximized(true);
+		shell.setLayout(new GridLayout(1, false));
+		shell.setImage(new Image(display, "source/icon.png"));
+		shell.setText("STCD - Statistical-based Clone Detection");
+
+		Menu menu = new Menu(shell, SWT.BAR);
+		shell.setMenuBar(menu);
 		
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					CCDTool frame = new CCDTool();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		MenuItem mntmNewSubmenu1 = new MenuItem(menu, SWT.CASCADE);
+		mntmNewSubmenu1.setText("Train");
+		
+		Menu menu_1 = new Menu(mntmNewSubmenu1);
+		mntmNewSubmenu1.setMenu(menu_1);
+		
+		MenuItem menu_Train_Open = new MenuItem(menu_1, SWT.NONE);
+		menu_Train_Open.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog train_FileDialog = new FileDialog(shell, SWT.OPEN);
+				String train_Filepath = train_FileDialog.open();
 			}
 		});
-	}
-
-	/**
-	 * Create the frame.
-	 */
-	public CCDTool() {
-		setTitle("CodeCloneDetecttion");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 80, 1200, 600);
+		menu_Train_Open.setText("Open File...");
 		
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
+		MenuItem menu_Train_Run = new MenuItem(menu_1, SWT.NONE);
+		menu_Train_Run.setText("Run");
 		
-		JMenu mnBasic = new JMenu("Basic");
-		menuBar.add(mnBasic);
+		MenuItem mntmNewSubmenu2 = new MenuItem(menu, SWT.CASCADE);
+		mntmNewSubmenu2.setText("Test");
 		
-		mntmOpenFile = new JMenuItem("Open File...");
-		mntmOpenFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				FileDialog fileChooser = new FileDialog(CCDTool.this, "Choose a file", FileDialog.LOAD);
-				fileChooser.setDirectory("~/git/SourceCodewithUI/TestFiles/");
-				fileChooser.setFile("*.java");
-				fileChooser.setVisible(true);
-				if(fileChooser.getFile() != null) {
-					String fileChooserPath = fileChooser.getDirectory() + fileChooser.getFile();
-				    try {
-				    	if(sourceDis1Blank) {
-				    		filePath1 = fileChooserPath;
-				    		sourceDisplay(sourceDis1, filePath1);
-				    		sourceDis1Blank = false;
-				    	}
-				    	else if(sourceDis2Blank) {
-				    		filePath2 = fileChooserPath;
-				    		if(filePath2.equals(filePath1))
-				    			isSingleFile = true;
-				    		else
-				    			isSingleFile = false;
-				    		sourceDisplay(sourceDis2, filePath2);
-				    		sourceDis2Blank = false;
-				    	}
-				    	else {
-				    		clearDisplay();
-				    		filePath1 = fileChooserPath;
-				    		sourceDisplay(sourceDis1, filePath1);
-				    		sourceDis1Blank = false;
-				    	}
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+		Menu menu_2 = new Menu(mntmNewSubmenu2);
+		mntmNewSubmenu2.setMenu(menu_2);
+		
+		MenuItem menu_Test_Open = new MenuItem(menu_2, SWT.NONE);
+		menu_Test_Open.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog test_FileDialog = new FileDialog(shell, SWT.OPEN);
+				String test_Filepath = test_FileDialog.open();
+				if(test_Filepath != null) {
+					if(sourceDis1Blank) {
+						filePath1 = test_Filepath;
+						try {
+							test_CodeDisplay(table_File1, filePath1);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						sourceDis1Blank = false;
+						}
+					else if(sourceDis2Blank) {
+						filePath2 = test_Filepath;
+						if(filePath2.equals(filePath1))
+							isSingleFile = true;
+						else
+							isSingleFile = false;
+						try {
+							test_CodeDisplay(table_File2, filePath2);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						sourceDis2Blank = false;
+						}
+					else {
+						clearDisplay();
+						filePath1 = test_Filepath;
+						try {
+							test_CodeDisplay(table_File1, filePath1);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						sourceDis1Blank = false;
+						}
 					}
 				}
-			}
-		});
-		mnBasic.add(mntmOpenFile);
+			});
+		menu_Test_Open.setText("Open File...");
 		
-		mntmClearFiles = new JMenuItem("Clear Files");
-		mntmClearFiles.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
+		MenuItem menu_Test_Clear = new MenuItem(menu_2, SWT.NONE);
+		menu_Test_Clear.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
 				clearDisplay();
 			}
 		});
-		mnBasic.add(mntmClearFiles);
+		menu_Test_Clear.setText("Clear Files");
 		
-		JMenu mnRun = new JMenu("Run");
-		menuBar.add(mnRun);
-		
-		mntmFindMethods = new JMenuItem("Find Methods");
-		mntmFindMethods.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				
-				methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
-				methodDisplay(methodDis1, methodVectorList1);
-				if(sourceDis2Blank) {
-					try {
+		MenuItem menu_Test_Run = new MenuItem(menu_2, SWT.NONE);
+		menu_Test_Run.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(!sourceDis1Blank) {
+					methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
+					test_MethodDisplay(table_Method1, methodVectorList1);
+					if(sourceDis2Blank) {
 						filePath2 = filePath1;
-						sourceDisplay(sourceDis2, filePath2);
+						try {
+							test_CodeDisplay(table_File2, filePath2);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 						sourceDis2Blank = false;
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					}
+					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath2));
+					test_MethodDisplay(table_Method2, methodVectorList2);
+					
+					cloneListDisplay(table_Results);
+				}
+				else {
+					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
+			        messageBox.setText("Error Message");
+			        messageBox.setMessage("No File has been selected!");
+			        int buttonID = messageBox.open();
+			        switch(buttonID) {
+			          case SWT.ABORT:
+			        }
+				}
+			}
+		});
+		menu_Test_Run.setText("Run");
+		
+		Label label_Training = new Label(shell, SWT.NONE);
+		GridData gd_label_Training = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+		gd_label_Training.horizontalIndent = 5;
+		label_Training.setLayoutData(gd_label_Training);
+		label_Training.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Training.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
+		label_Training.setText("Training");
+		
+		Label label_4 = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
+		label_4.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Group group_Training = new Group(shell, SWT.NONE);
+		group_Training.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		group_Training.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
+		group_Training.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		GridLayout gl_group_Training = new GridLayout(9, false);
+		gl_group_Training.marginHeight = 0;
+		group_Training.setLayout(gl_group_Training);
+	    
+		Composite com_TrainFile = new Composite(group_Training, SWT.NONE);
+		GridData gd_com_TrainFile = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+		gd_com_TrainFile.heightHint = 40;
+		gd_com_TrainFile.widthHint = 276;
+		com_TrainFile.setLayoutData(gd_com_TrainFile);
+		GridLayout gl_com_TrainFile = new GridLayout(1, false);
+		com_TrainFile.setLayout(gl_com_TrainFile);
+		
+		Label label_SelectFile = new Label(com_TrainFile, SWT.NONE);
+		label_SelectFile.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_SelectFile.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_SelectFile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		label_SelectFile.setText("Select File");
+		
+		text_SelectFile = new Text(com_TrainFile, SWT.BORDER);
+		text_SelectFile.setEditable(false);
+		text_SelectFile.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		text_SelectFile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label label_1 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
+		
+		Composite com_HiddenNodes = new Composite(group_Training, SWT.NONE);
+		com_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		com_HiddenNodes.setLayout(new GridLayout(3, false));
+		new Label(com_HiddenNodes, SWT.NONE);
+		
+		Label lable_HiddenNodes = new Label(com_HiddenNodes, SWT.NONE);
+		lable_HiddenNodes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		lable_HiddenNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		lable_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		lable_HiddenNodes.setText("Hidden Nodes: 5");
+		
+		Label label_MinNodes = new Label(com_HiddenNodes, SWT.NONE);
+		label_MinNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MinNodes.setText("5");
+		
+		Slider slider_HiddenNodes = new Slider(com_HiddenNodes, SWT.BORDER);
+		slider_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		slider_HiddenNodes.setToolTipText("");
+		slider_HiddenNodes.setThumb(1);
+		slider_HiddenNodes.setPageIncrement(1);
+		slider_HiddenNodes.setMaximum(11);
+		slider_HiddenNodes.setMinimum(0);
+		slider_HiddenNodes.setSelection(0);
+		
+		slider_HiddenNodes.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				train_HiddenNodes = slider_HiddenNodes.getSelection() + 5;
+				lable_HiddenNodes.setText("Hidden Nodes: " + train_HiddenNodes);
+				}
+			}
+		);
+		
+		Label label_MaxNodes = new Label(com_HiddenNodes, SWT.NONE);
+		label_MaxNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MaxNodes.setText("15");
+		
+		Label label_2 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
+		
+		Composite com_TrainTimes = new Composite(group_Training, SWT.NONE);
+		com_TrainTimes.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		com_TrainTimes.setLayout(new GridLayout(3, false));
+		new Label(com_TrainTimes, SWT.NONE);
+		
+		Label label_TrainingTimes = new Label(com_TrainTimes, SWT.NONE);
+		label_TrainingTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_TrainingTimes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_TrainingTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		label_TrainingTimes.setText("Training Times: 100");
+		
+		Label label_MinTimes = new Label(com_TrainTimes, SWT.NONE);
+		label_MinTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MinTimes.setText("100");
+		
+		Slider slider_TrainTimes = new Slider(com_TrainTimes, SWT.NONE);
+		slider_TrainTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		slider_TrainTimes.setThumb(1);
+		slider_TrainTimes.setPageIncrement(1);
+		slider_TrainTimes.setMaximum(9);
+		slider_TrainTimes.setMinimum(0);
+		slider_TrainTimes.setSelection(0);
+		
+		slider_TrainTimes.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				train_TrainTimes = 50 * (slider_TrainTimes.getSelection() + 2);
+				label_TrainingTimes.setText("Training Times: " + train_TrainTimes);
+				}
+			}
+		);
+		
+		Label label_MaxTimes = new Label(com_TrainTimes, SWT.NONE);
+		label_MaxTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MaxTimes.setText("500");
+		
+		Label label_3 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
+		
+		Composite com_Threshold = new Composite(group_Training, SWT.NONE);
+		com_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		com_Threshold.setLayout(new GridLayout(3, false));
+		new Label(com_Threshold, SWT.NONE);
+		
+		Label label_Threshold = new Label(com_Threshold, SWT.NONE);
+		label_Threshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Threshold.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		label_Threshold.setText("Threshold: 0.5");
+		
+		Label label_MinThreshold = new Label(com_Threshold, SWT.NONE);
+		label_MinThreshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MinThreshold.setText("0.5");
+		
+		Slider slider_Threshold = new Slider(com_Threshold, SWT.NONE);
+		slider_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		slider_Threshold.setThumb(1);
+		slider_Threshold.setPageIncrement(1);
+		slider_Threshold.setMaximum(21);
+		slider_Threshold.setMinimum(0);
+		
+		slider_Threshold.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				train_Threshold = (float) (0.01 * slider_Threshold.getSelection() + 0.5);
+				label_Threshold.setText("Threshold: " + train_Threshold);
+				}
+			}
+		);
+		
+		Label label_MaxThreshold = new Label(com_Threshold, SWT.NONE);
+		label_MaxThreshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_MaxThreshold.setText("0.7");
+		
+		Label label = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
+		
+		Label label_TrainStatus = new Label(group_Training, SWT.NONE);
+		label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+		label_TrainStatus.setFont(SWTResourceManager.getFont(".SF NS Text", 16, SWT.BOLD));
+		label_TrainStatus.setAlignment(SWT.CENTER);
+		label_TrainStatus.setText("Untrained!");
+		
+		Label label_Testing = new Label(shell, SWT.NONE);
+		GridData gd_label_Testing = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+		gd_label_Testing.horizontalIndent = 5;
+		label_Testing.setLayoutData(gd_label_Testing);
+		label_Testing.setText("Testing");
+		label_Testing.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Testing.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
+		
+		Label label_8 = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
+		label_8.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Group group_Testing = new Group(shell, SWT.NONE);
+		group_Testing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		group_Testing.setLayout(new GridLayout(5, false));
+	    
+		Composite com_File1 = new Composite(group_Testing, SWT.NONE);
+		com_File1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.NORMAL));
+		GridData gd_com_File1 = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 3);
+		gd_com_File1.widthHint = 250;
+		com_File1.setLayoutData(gd_com_File1);
+		com_File1.setLayout(new GridLayout(1, false));
+		
+		Label label_File1 = new Label(com_File1, SWT.NONE);
+		label_File1.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_File1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_File1.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
+		label_File1.setText("File1");
+		
+		table_File1 = new Table(com_File1, SWT.NONE);
+		table_File1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
+		table_File1.setHeaderVisible(true);
+		table_File1.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		
+		TableColumn table_File1_ID = new TableColumn(table_File1, SWT.RIGHT | SWT.H_SCROLL);
+		table_File1_ID.setWidth(30);
+		table_File1_ID.setText("No.");
+		
+		TableColumn table_File1_Code = new TableColumn(table_File1, SWT.NONE | SWT.H_SCROLL);
+		table_File1_Code.setWidth(391);
+		table_File1_Code.setText("  Code");
+		
+		Composite com_File2 = new Composite(group_Testing, SWT.NONE);
+		GridData gd_com_File2 = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 3);
+		gd_com_File2.widthHint = 250;
+		com_File2.setLayoutData(gd_com_File2);
+		com_File2.setLayout(new GridLayout(1, false));
+		
+		Label label_File2 = new Label(com_File2, SWT.NONE);
+		label_File2.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_File2.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_File2.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
+		label_File2.setText("File2");
+		
+		table_File2 = new Table(com_File2, SWT.NONE);
+		table_File2.setHeaderVisible(true);
+		table_File2.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		GridData gd_table_File2 = new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1);
+		gd_table_File2.widthHint = 500;
+		table_File2.setLayoutData(gd_table_File2);
+		
+		TableColumn table_File2_ID = new TableColumn(table_File2, SWT.RIGHT | SWT.H_SCROLL);
+		table_File2_ID.setWidth(30);
+		table_File2_ID.setText("No.");
+		
+		TableColumn table_File2_Code = new TableColumn(table_File2, SWT.NONE | SWT.H_SCROLL);
+		table_File2_Code.setWidth(389);
+		table_File2_Code.setText("  Code");
+		
+		Label label_7 = new Label(group_Testing, SWT.SEPARATOR | SWT.VERTICAL);
+		label_7.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 3));
+		
+		Composite com_Method1 = new Composite(group_Testing, SWT.NONE);
+		GridData gd_com_Method1 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_com_Method1.widthHint = 00;
+		com_Method1.setLayoutData(gd_com_Method1);
+		com_Method1.setLayout(new GridLayout(1, false));
+		
+		Label label_Method1 = new Label(com_Method1, SWT.NONE);
+		label_Method1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		label_Method1.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Method1.setText("Method1");
+		
+		table_Method1 = new Table(com_Method1, SWT.BORDER | SWT.FULL_SELECTION);
+		table_Method1.setHeaderVisible(true);
+		table_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		table_Method1.setLinesVisible(true);
+		GridData gd_table_Method1 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_table_Method1.widthHint = 0;
+		table_Method1.setLayoutData(gd_table_Method1);
+		
+		TableColumn table_Method1_ID = new TableColumn(table_Method1, SWT.CENTER);
+		table_Method1_ID.setWidth(25);
+		table_Method1_ID.setText("No.");
+		
+		TableColumn table_Method1_Method = new TableColumn(table_Method1, SWT.NONE);
+		table_Method1_Method.setWidth(188);
+		table_Method1_Method.setText("  Method");
+		
+		Composite com_Method2 = new Composite(group_Testing, SWT.NONE);
+		GridData gd_com_Method2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_com_Method2.widthHint = 0;
+		com_Method2.setLayoutData(gd_com_Method2);
+		com_Method2.setLayout(new GridLayout(1, false));
+		
+		Label label_Method2 = new Label(com_Method2, SWT.NONE);
+		label_Method2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		label_Method2.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Method2.setText("Method2");
+		
+		table_Method2 = new Table(com_Method2, SWT.BORDER | SWT.FULL_SELECTION);
+		table_Method2.setHeaderVisible(true);
+		table_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		table_Method2.setLinesVisible(true);
+		GridData gd_table_Method2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_table_Method2.widthHint = 0;
+		table_Method2.setLayoutData(gd_table_Method2);
+		
+		TableColumn table_Method2_ID = new TableColumn(table_Method2, SWT.CENTER);
+		table_Method2_ID.setWidth(25);
+		table_Method2_ID.setText("No.");
+		
+		TableColumn table_Method2_Method = new TableColumn(table_Method2, SWT.NONE);
+		table_Method2_Method.setWidth(186);
+		table_Method2_Method.setText("  Method");
+		
+		Label label_6 = new Label(group_Testing, SWT.SEPARATOR | SWT.HORIZONTAL);
+		label_6.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		
+		Composite com_Results = new Composite(group_Testing, SWT.NONE);
+		com_Results.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		com_Results.setLayout(new GridLayout(1, false));
+		
+		Label label_Results = new Label(com_Results, SWT.NONE);
+		label_Results.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false, 1, 1));
+		label_Results.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		label_Results.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Results.setText("Results");
+		
+		table_Results = new Table(com_Results, SWT.BORDER | SWT.FULL_SELECTION);
+		table_Results.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(table_Results.getSelectionIndex() != -1) {
+					test_clonePairsDisplay();
 					}
 				}
-				methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath2));
-				methodDisplay(methodDis2, methodVectorList2);
+			});
+		table_Results.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		table_Results.setHeaderVisible(true);
+		table_Results.setLinesVisible(true);
+		GridData gd_table_Results = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_table_Results.widthHint = 0;
+		table_Results.setLayoutData(gd_table_Results);
+		
+		TableColumn table_Results_ID = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_ID.setWidth(25);
+		table_Results_ID.setText("No.");
+		
+		TableColumn table_Results_Sim = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_Sim.setWidth(40);
+		table_Results_Sim.setText("Sim");
+		
+		TableColumn table_Results_M1 = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M1.setWidth(108);
+		table_Results_M1.setText("Method 1");
+		
+		TableColumn table_Results_M1S = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M1S.setWidth(40);
+		table_Results_M1S.setText("Start");
+		
+		TableColumn table_Results_M1E = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M1E.setWidth(40);
+		table_Results_M1E.setText("End");
+		
+		TableColumn table_Results_M2 = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M2.setWidth(108);
+		table_Results_M2.setText("Method 2");
+		
+		TableColumn table_Results_M2S = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M2S.setWidth(40);
+		table_Results_M2S.setText("Start");
+		
+		TableColumn table_Results_M2E = new TableColumn(table_Results, SWT.CENTER);
+		table_Results_M2E.setWidth(40);
+		table_Results_M2E.setText("End");
+		
+		shell.open();
+		
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch())
+				display.sleep();
 			}
-		});
-		mnRun.add(mntmFindMethods);
-		
-		mntmFindCloneCode = new JMenuItem("Find Clone Code");
-		mntmFindCloneCode.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cloneListDisplay(outputDis);
-			}
-		});
-		mnRun.add(mntmFindCloneCode);
-		
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		
-		gbl_contentPane = new GridBagLayout();
-		gbl_contentPane.columnWidths = new int[] {780, 380};
-		gbl_contentPane.rowHeights = new int[] {530, 0};
-		gbl_contentPane.columnWeights = new double[]{0.0, 0.0};
-		gbl_contentPane.rowWeights = new double[]{0.0, Double.MIN_VALUE};
-		contentPane.setLayout(gbl_contentPane);		
-		
-		Box SourceBox = Box.createHorizontalBox();
-		GridBagConstraints gbc_SourceBox = new GridBagConstraints();
-		gbc_SourceBox.fill = GridBagConstraints.BOTH;
-		gbc_SourceBox.anchor = GridBagConstraints.NORTH;
-		gbc_SourceBox.gridwidth = GridBagConstraints.RELATIVE;
-		gbc_SourceBox.insets = new Insets(0, 0, 0, 5);
-		gbc_SourceBox.gridx = 0;
-		gbc_SourceBox.gridy = 0;
-		gbc_SourceBox.weightx = 1.0;
-		gbc_SourceBox.weighty = 1.0;
-		contentPane.add(SourceBox, gbc_SourceBox);
-		
-		sourcePanel1 = new JPanel();
-		sourcePanel1.setBorder(new TitledBorder(null, "File 1", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		sourcePanel1.setLayout(new BoxLayout(sourcePanel1, BoxLayout.X_AXIS));
-		SourceBox.add(sourcePanel1);
-		
-		sourceScrollPanel1 = new JScrollPane();
-		sourcePanel1.add(sourceScrollPanel1);
-		
-		sourceModel1 = new DefaultTableModel();
-		sourceModel1.setColumnIdentifiers(new Object[]{"#", "Code"});
-		
-		sourceDis1 = new JTable(sourceModel1);
-		sourceDis1.setShowGrid(false);
-		sourceDis1.setFillsViewportHeight(true);
-		sourceDis1.getColumnModel().getColumn(0).setPreferredWidth(40);
-		sourceDis1.getColumnModel().getColumn(1).setPreferredWidth(700);
-		sourceDis1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		sourceScrollPanel1.setViewportView(sourceDis1);
-		
-		sourcePanel2 = new JPanel();
-		sourcePanel2.setBorder(new TitledBorder(null, "File 2", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		sourcePanel2.setLayout(new BoxLayout(sourcePanel2, BoxLayout.X_AXIS));
-		SourceBox.add(sourcePanel2);
-		
-		sourceScrollPanel2 = new JScrollPane();
-		sourcePanel2.add(sourceScrollPanel2);
-		
-		sourceModel2 = new DefaultTableModel();
-		sourceModel2.setColumnIdentifiers(new Object[]{"#", "Code"});
-		
-		sourceDis2 = new JTable(sourceModel2);
-		sourceDis2.setShowGrid(false);
-		sourceDis2.setFillsViewportHeight(true);
-		sourceDis2.getColumnModel().getColumn(0).setPreferredWidth(40);
-		sourceDis2.getColumnModel().getColumn(1).setPreferredWidth(700);
-		sourceDis2.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		sourceScrollPanel2.setViewportView(sourceDis2);
-		
-		Box LocalBox = Box.createVerticalBox();
-		GridBagConstraints gbc_LocalBox = new GridBagConstraints();
-		gbc_LocalBox.fill = GridBagConstraints.BOTH;
-		gbc_LocalBox.anchor = GridBagConstraints.WEST;
-		gbc_LocalBox.gridx = 1;
-		gbc_LocalBox.gridy = 0;
-		contentPane.add(LocalBox, gbc_LocalBox);
-		
-		Box MethodBox = Box.createHorizontalBox();
-		LocalBox.add(MethodBox);
-		
-		methodPanel1 = new JPanel();
-		methodPanel1.setBorder(new TitledBorder(null, "Methods 1", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		methodPanel1.setLayout(new BoxLayout(methodPanel1, BoxLayout.X_AXIS));
-		MethodBox.add(methodPanel1);
-		
-		methodScrollPanel1 = new JScrollPane();
-		methodPanel1.add(methodScrollPanel1);
-		
-		methodModel1 = new DefaultTableModel();
-		methodModel1.setColumnIdentifiers(new Object[]{"#", "Method Name"});
-		
-		methodDis1 = new JTable(methodModel1);
-		methodDis1.setFillsViewportHeight(true);
-		methodDis1.getColumnModel().getColumn(0).setMaxWidth(30);
-		methodDis1.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		methodScrollPanel1.setViewportView(methodDis1);
-		
-		methodPanel2 = new JPanel();
-		methodPanel2.setBorder(new TitledBorder(null, "Methods 2", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		methodPanel2.setLayout(new BoxLayout(methodPanel2, BoxLayout.X_AXIS));
-		MethodBox.add(methodPanel2);
-		
-		methodScrollPanel2 = new JScrollPane();
-		methodPanel2.add(methodScrollPanel2);
-		
-		methodModel2 = new DefaultTableModel();
-		methodModel2.setColumnIdentifiers(new Object[]{"#", "Method Name"});
-		
-		methodDis2 = new JTable(methodModel2);
-		methodDis2.setFillsViewportHeight(true);
-		methodDis2.getColumnModel().getColumn(0).setMaxWidth(30);
-		methodDis2.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		methodScrollPanel2.setViewportView(methodDis2);
-		
-		Box OutputBox = Box.createHorizontalBox();
-		LocalBox.add(OutputBox);
-		
-		outputPanel = new JPanel();
-		outputPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		outputPanel.setLayout(new BoxLayout(outputPanel, BoxLayout.X_AXIS));
-		OutputBox.add(outputPanel);
-		
-		outputScrollPanel = new JScrollPane();
-		outputPanel.add(outputScrollPanel);
-		
-		outputModel = new DefaultTableModel();
-		outputModel.setColumnIdentifiers(new Object[]{"#", "Sim", "Method 1", "Start", "End", "Method 2", "Start", "End"});
-		
-		outputDis = new JTable(outputModel);
-		outputDis.setFillsViewportHeight(true);
-		outputDis.getColumnModel().getColumn(0).setPreferredWidth(30);
-		outputDis.getColumnModel().getColumn(1).setPreferredWidth(50);
-		outputDis.getColumnModel().getColumn(2).setPreferredWidth(180);
-		outputDis.getColumnModel().getColumn(3).setPreferredWidth(60);
-		outputDis.getColumnModel().getColumn(4).setPreferredWidth(50);
-		outputDis.getColumnModel().getColumn(5).setPreferredWidth(180);
-		outputDis.getColumnModel().getColumn(6).setPreferredWidth(60);
-		outputDis.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		outputScrollPanel.setViewportView(outputDis);
-		
-		outputDis.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-		    public void valueChanged(ListSelectionEvent event) {
-		    	cloneMethodDisplay();
-		    }
-		});
+		display.dispose();
 	}
 	
-	public void sourceDisplay(JTable tb, String filePath) throws IOException {
+	public static void test_CodeDisplay(Table tb, String filePath) throws IOException {
 		int lineCount = 1;
 		String readLine = "";
 		FileInputStream fis = new FileInputStream(filePath);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-	    while((readLine = br.readLine()) != null) {
-	    	DefaultTableModel model = (DefaultTableModel)tb.getModel();
-	    	readLine = readLine.replaceAll("\t", "        ");
-	    	model.addRow(new Object[]{lineCount++, readLine});
+		while((readLine = br.readLine()) != null) {
+			readLine = readLine.replaceAll("\t", "        ");
+			TableItem it = new TableItem(tb, SWT.NONE);
+			it.setText(new String[]{String.valueOf(lineCount++), "  " + readLine});
 		}
-	    fis.close();
+		fis.close();
 	}
 	
-	public void clearDisplay() {
-		DefaultTableModel model = (DefaultTableModel)sourceDis1.getModel();
-		model.setRowCount(0);
-		model = (DefaultTableModel)sourceDis2.getModel();
-		model.setRowCount(0);
-		model = (DefaultTableModel)methodDis1.getModel();
-		model.setRowCount(0);
-		model = (DefaultTableModel)methodDis2.getModel();
-		model.setRowCount(0);
-		model = (DefaultTableModel)outputDis.getModel();
-		model.setRowCount(0);
-		
-		sourceDis1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                comp.setBackground(Color.WHITE);
-                return comp;
-            }  
-        });
-		sourceDis1.updateUI();
-		
-		sourceDis2.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                comp.setBackground(Color.WHITE);
-                return comp;
-            }  
-        });
-		sourceDis2.updateUI();
+	public static void clearDisplay() {
+		table_File1.removeAll();
+		table_File2.removeAll();
 		
 		sourceDis1Blank = true;
 		sourceDis2Blank = true;
@@ -370,16 +564,15 @@ public class CCDTool extends JFrame {
 		filePath2 = "";
 	}
 	
-	public void methodDisplay(JTable tb, MethodList mList) {
-    	DefaultTableModel model = (DefaultTableModel)tb.getModel();
-    	model.setRowCount(0);
+	public static void test_MethodDisplay(Table tb, MethodList mList) {
+
 		for(int index = 0; index < mList.size(); index++) {
-	    	model = (DefaultTableModel)tb.getModel();
-	    	model.addRow(new Object[]{index + 1, mList.getMethodVector(index).methodName});
+			TableItem it = new TableItem(tb, SWT.NONE);
+			it.setText(new String[]{String.valueOf(index + 1), mList.getMethodVector(index).methodName});
 		}
 	}
 	
-	public void cloneListDisplay(JTable tb) {
+	public static void cloneListDisplay(Table tb) {
 		MethodSimilarity methodSim = new MethodSimilarity();
 		List<Result> rList = new ArrayList<Result>();
 		if(isSingleFile)
@@ -387,57 +580,49 @@ public class CCDTool extends JFrame {
 		else
 			rList = methodSim.simDetector(methodVectorList1, methodVectorList2);
 		for(int index = 0; index < rList.size(); index++) {
-	    	DefaultTableModel model = (DefaultTableModel)tb.getModel();
-	    	model.addRow(new Object[]{
-	    			rList.get(index).index,
-	    			(double)(Math.round(rList.get(index).similarity * 100)/100.0),
+			TableItem it = new TableItem(tb, SWT.NONE);
+			it.setText(new String[]{
+					String.valueOf(rList.get(index).index),
+	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100)/100.0)),
 	    			rList.get(index).methodName1,
-	    			rList.get(index).startLineNum1,
-	    			rList.get(index).endLineNum1 + 1,
+	    			String.valueOf(rList.get(index).startLineNum1),
+	    			String.valueOf(rList.get(index).endLineNum1 + 1),
 	    			rList.get(index).methodName2,
-	    			rList.get(index).startLineNum2,
-	    			rList.get(index).endLineNum2 + 1});
+	    			String.valueOf(rList.get(index).startLineNum2),
+	    			String.valueOf(rList.get(index).endLineNum2 + 1)
+	    			});
 		}
 	}
 	
-	public void cloneMethodDisplay() {
-		if (outputDis.getSelectedRow() > -1) {
-			final int colorLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 3);
-			final int scrollLine1 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 4);
-			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(0, 0, true));
-			sourceDis1.scrollRectToVisible(sourceDis1.getCellRect(scrollLine1+ 10, 0, true));
-			final int colorLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 6);
-			final int scrollLine2 = (int) outputDis.getValueAt(outputDis.getSelectedRow(), 7);
-			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(0, 0, true));
-			sourceDis2.scrollRectToVisible(sourceDis2.getCellRect(scrollLine2 + 10, 0, true));
-			
-			sourceDis1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-	            @Override
-	            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-	                Color color = new Color(200, 255, 200);
-	                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-	                if(row >= colorLine1 - 1 && row < scrollLine1)
-	                	comp.setBackground(color);
-	                else
-	                	comp.setBackground(Color.WHITE);
-	                return comp;
-	            }  
-	        });
-			sourceDis1.updateUI();
-			
-			sourceDis2.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-	            @Override
-	            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-	                Color color = new Color(255, 200, 200);
-	                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-	                if(row >= colorLine2 - 1 && row < scrollLine2)
-	                	comp.setBackground(color);
-	                else
-	                	comp.setBackground(Color.WHITE);
-	                return comp;
-	            }  
-	        });
-			sourceDis2.updateUI();
-        }
+	public static void test_clonePairsDisplay() {
+		int color_Index;
+		for(color_Index = 0; color_Index < table_File1.getItemCount(); color_Index++)
+			table_File1.getItem(color_Index).setBackground(1, Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+		for(color_Index = 0; color_Index < table_File2.getItemCount(); color_Index++)
+			table_File2.getItem(color_Index).setBackground(1, Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+		
+		Rectangle rect = table_File1.getClientArea ();
+		int itemHeight = table_File1.getItemHeight ();
+		int headerHeight = table_File1.getHeaderHeight ();
+		int visibleCount = (rect.height - headerHeight + itemHeight - 1) / itemHeight;
+		
+        TableItem item = table_Results.getItem(table_Results.getSelectionIndex());
+        
+        int test_ColorLine1 = Integer.valueOf(item.getText(3)) - 1;
+		int test_ScrollLine1 = Integer.valueOf(item.getText(4));
+		table_File1.setSelection(0);
+		table_File1.setSelection(test_ColorLine1 + visibleCount - 5);
+		table_File1.deselect(table_File1.getSelectionIndex());
+		
+		int test_ColorLine2 = Integer.valueOf(item.getText(6)) - 1;
+		int test_ScrollLine2 = Integer.valueOf(item.getText(7));
+		table_File2.setSelection(0);
+		table_File2.setSelection(test_ColorLine2 + visibleCount - 5);
+		table_File2.deselect(table_File2.getSelectionIndex());
+		
+		for(color_Index = test_ColorLine1; color_Index < test_ScrollLine1; color_Index++)
+			table_File1.getItem(color_Index).setBackground(1, new Color(Display.getCurrent(), 200, 255, 200));
+		for(color_Index = test_ColorLine2; color_Index < test_ScrollLine2; color_Index++)
+			table_File2.getItem(color_Index).setBackground(1, new Color(Display.getCurrent(), 255, 200, 200));
 	}
 }
