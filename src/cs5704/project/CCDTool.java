@@ -62,7 +62,7 @@ public class CCDTool{
 		Shell shell = new Shell(display);
 		shell.setMaximized(true);
 		shell.setLayout(new GridLayout(1, false));
-		shell.setImage(new Image(display, "source/icon.png"));
+		shell.setImage(new Image(display, "sources/icon.png"));
 		shell.setText("STCD - Statistical-based Clone Detection");
 
 		Menu menu = new Menu(shell, SWT.BAR);
@@ -98,6 +98,7 @@ public class CCDTool{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog test_FileDialog = new FileDialog(shell, SWT.OPEN);
+				test_FileDialog.setFilterPath("sources/TestFiles/");
 				String test_Filepath = test_FileDialog.open();
 				if(test_Filepath != null) {
 					if(sourceDis1Blank) {
