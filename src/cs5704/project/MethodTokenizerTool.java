@@ -52,6 +52,10 @@ public class MethodTokenizerTool{
 			
 			// core process of tokenizer
 			TokenVector tokenVector;
+			
+			tokenVector = new TokenVector(Character.toString('{'), "Marker");
+			tokenList.addTokenVector(tokenVector);
+			
 			int index;
 			int token = st.nextToken();
 			while (token != StreamTokenizer.TT_EOF) {

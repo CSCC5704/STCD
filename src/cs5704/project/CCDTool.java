@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Table;
@@ -31,16 +32,29 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.custom.TableTree;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.TreeItem;
 
 public class CCDTool{
-	private static Text text_SelectFile;
+	
+	public static final String APP_NAME = "STCD";
+	private static Text text_SelectDirectory;
+	private static Slider slider_HiddenNodes;
+	private static Slider slider_TrainTimes;
+	private static Slider slider_Threshold;
+	private static Label label_TrainStatus;
 	private static Table table_File1;
 	private static Table table_File2;
-	private static Table table_Method1;
-	private static Table table_Method2;
+	private static Tree tree_Method1;
+	private static Tree tree_Method2;
 	private static Table table_Results;
+	
+	public static boolean TRAIN_MODE = false;
 	
 	public static int train_HiddenNodes, train_TrainTimes;
 	public static float train_Threshold;
@@ -57,8 +71,10 @@ public class CCDTool{
 
 	public static void main(String[] args) {
 		
-		// TODO Auto-generated method stub		
-		Display display = new Display();
+		// TODO Auto-generated method stub
+		Display.setAppName(APP_NAME);
+		Display display = Display.getDefault();
+				
 		Shell shell = new Shell(display);
 		shell.setMaximized(true);
 		shell.setLayout(new GridLayout(1, false));
@@ -78,13 +94,44 @@ public class CCDTool{
 		menu_Train_Open.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				FileDialog train_FileDialog = new FileDialog(shell, SWT.OPEN);
-				String train_Filepath = train_FileDialog.open();
+				DirectoryDialog train_DirectoryDialog = new DirectoryDialog(shell, SWT.OPEN);
+				train_DirectoryDialog.setFilterPath("sources");
+				String train_Directorypath = train_DirectoryDialog.open();
+				if(train_Directorypath != null) {
+					text_SelectDirectory.setText(train_Directorypath);
+				}
 			}
 		});
-		menu_Train_Open.setText("Open File...");
+		menu_Train_Open.setText("Open Directory...");
+		
+		MenuItem menu_Train_Reset = new MenuItem(menu_1, SWT.NONE);
+		menu_Train_Reset.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				TRAIN_MODE = false;
+			
+				text_SelectDirectory.setText("");
+				
+				slider_HiddenNodes.setSelection(0);
+				slider_TrainTimes.setSelection(0);
+				slider_Threshold.setSelection(0);
+				
+				label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+				label_TrainStatus.setText("Untrained!");
+			}
+		});
+		menu_Train_Reset.setText("Reset");
 		
 		MenuItem menu_Train_Run = new MenuItem(menu_1, SWT.NONE);
+		menu_Train_Run.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				TRAIN_MODE = true;
+				
+				label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GREEN));
+				label_TrainStatus.setText("Ready!");
+			}
+		});
 		menu_Train_Run.setText("Run");
 		
 		MenuItem mntmNewSubmenu2 = new MenuItem(menu, SWT.CASCADE);
@@ -126,7 +173,7 @@ public class CCDTool{
 						sourceDis2Blank = false;
 						}
 					else {
-						clearDisplay();
+						test_ClearDisplay();
 						filePath1 = test_Filepath;
 						try {
 							test_CodeDisplay(table_File1, filePath1);
@@ -145,7 +192,7 @@ public class CCDTool{
 		menu_Test_Clear.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				clearDisplay();
+				test_ClearDisplay();
 			}
 		});
 		menu_Test_Clear.setText("Clear Files");
@@ -156,7 +203,7 @@ public class CCDTool{
 			public void widgetSelected(SelectionEvent e) {
 				if(!sourceDis1Blank) {
 					methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
-					test_MethodDisplay(table_Method1, methodVectorList1);
+					test_MethodDisplay(tree_Method1, methodVectorList1);
 					if(sourceDis2Blank) {
 						filePath2 = filePath1;
 						try {
@@ -168,9 +215,9 @@ public class CCDTool{
 						sourceDis2Blank = false;
 					}
 					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath2));
-					test_MethodDisplay(table_Method2, methodVectorList2);
+					test_MethodDisplay(tree_Method2, methodVectorList2);
 					
-					cloneListDisplay(table_Results);
+					test_CloneListDisplay();
 				}
 				else {
 					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
@@ -212,16 +259,16 @@ public class CCDTool{
 		GridLayout gl_com_TrainFile = new GridLayout(1, false);
 		com_TrainFile.setLayout(gl_com_TrainFile);
 		
-		Label label_SelectFile = new Label(com_TrainFile, SWT.NONE);
-		label_SelectFile.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_SelectFile.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
-		label_SelectFile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		label_SelectFile.setText("Select File");
+		Label lblDirectoryPath = new Label(com_TrainFile, SWT.NONE);
+		lblDirectoryPath.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
+		lblDirectoryPath.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		lblDirectoryPath.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		lblDirectoryPath.setText("Directory Path");
 		
-		text_SelectFile = new Text(com_TrainFile, SWT.BORDER);
-		text_SelectFile.setEditable(false);
-		text_SelectFile.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
-		text_SelectFile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		text_SelectDirectory = new Text(com_TrainFile, SWT.BORDER);
+		text_SelectDirectory.setEditable(false);
+		text_SelectDirectory.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		text_SelectDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label label_1 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
 		
@@ -240,7 +287,7 @@ public class CCDTool{
 		label_MinNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_MinNodes.setText("5");
 		
-		Slider slider_HiddenNodes = new Slider(com_HiddenNodes, SWT.BORDER);
+		slider_HiddenNodes = new Slider(com_HiddenNodes, SWT.BORDER);
 		slider_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		slider_HiddenNodes.setToolTipText("");
 		slider_HiddenNodes.setThumb(1);
@@ -278,7 +325,7 @@ public class CCDTool{
 		label_MinTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_MinTimes.setText("100");
 		
-		Slider slider_TrainTimes = new Slider(com_TrainTimes, SWT.NONE);
+		slider_TrainTimes = new Slider(com_TrainTimes, SWT.NONE);
 		slider_TrainTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		slider_TrainTimes.setThumb(1);
 		slider_TrainTimes.setPageIncrement(1);
@@ -315,12 +362,13 @@ public class CCDTool{
 		label_MinThreshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_MinThreshold.setText("0.5");
 		
-		Slider slider_Threshold = new Slider(com_Threshold, SWT.NONE);
+		slider_Threshold = new Slider(com_Threshold, SWT.NONE);
 		slider_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		slider_Threshold.setThumb(1);
 		slider_Threshold.setPageIncrement(1);
 		slider_Threshold.setMaximum(21);
 		slider_Threshold.setMinimum(0);
+		slider_Threshold.setSelection(0);
 		
 		slider_Threshold.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -336,7 +384,7 @@ public class CCDTool{
 		
 		Label label = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
 		
-		Label label_TrainStatus = new Label(group_Training, SWT.NONE);
+		label_TrainStatus = new Label(group_Training, SWT.NONE);
 		label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
 		label_TrainStatus.setFont(SWTResourceManager.getFont(".SF NS Text", 16, SWT.BOLD));
 		label_TrainStatus.setAlignment(SWT.CENTER);
@@ -425,21 +473,17 @@ public class CCDTool{
 		label_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_Method1.setText("Method1");
 		
-		table_Method1 = new Table(com_Method1, SWT.BORDER | SWT.FULL_SELECTION);
-		table_Method1.setHeaderVisible(true);
-		table_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
-		table_Method1.setLinesVisible(true);
+		tree_Method1 = new Tree(com_Method1, SWT.BORDER | SWT.FULL_SELECTION);
+		tree_Method1.setHeaderVisible(true);
+		tree_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		tree_Method1.setLinesVisible(true);
 		GridData gd_table_Method1 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gd_table_Method1.widthHint = 0;
-		table_Method1.setLayoutData(gd_table_Method1);
+		tree_Method1.setLayoutData(gd_table_Method1);
 		
-		TableColumn table_Method1_ID = new TableColumn(table_Method1, SWT.CENTER);
-		table_Method1_ID.setWidth(25);
-		table_Method1_ID.setText("No.");
-		
-		TableColumn table_Method1_Method = new TableColumn(table_Method1, SWT.NONE);
-		table_Method1_Method.setWidth(188);
-		table_Method1_Method.setText("  Method");
+		TreeColumn tree_Method1_Method = new TreeColumn(tree_Method1, SWT.LEFT);
+		tree_Method1_Method.setWidth(213);
+		tree_Method1_Method.setText("  Method Name");
 		
 		Composite com_Method2 = new Composite(group_Testing, SWT.NONE);
 		GridData gd_com_Method2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
@@ -453,21 +497,17 @@ public class CCDTool{
 		label_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_Method2.setText("Method2");
 		
-		table_Method2 = new Table(com_Method2, SWT.BORDER | SWT.FULL_SELECTION);
-		table_Method2.setHeaderVisible(true);
-		table_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
-		table_Method2.setLinesVisible(true);
+		tree_Method2 = new Tree(com_Method2, SWT.BORDER | SWT.FULL_SELECTION);
+		tree_Method2.setHeaderVisible(true);
+		tree_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		tree_Method2.setLinesVisible(true);
 		GridData gd_table_Method2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gd_table_Method2.widthHint = 0;
-		table_Method2.setLayoutData(gd_table_Method2);
+		tree_Method2.setLayoutData(gd_table_Method2);
 		
-		TableColumn table_Method2_ID = new TableColumn(table_Method2, SWT.CENTER);
-		table_Method2_ID.setWidth(25);
-		table_Method2_ID.setText("No.");
-		
-		TableColumn table_Method2_Method = new TableColumn(table_Method2, SWT.NONE);
-		table_Method2_Method.setWidth(186);
-		table_Method2_Method.setText("  Method");
+		TreeColumn tree_Method2_Method = new TreeColumn(tree_Method2, SWT.LEFT);
+		tree_Method2_Method.setWidth(211);
+		tree_Method2_Method.setText("  Method Name");
 		
 		Label label_6 = new Label(group_Testing, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label_6.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
@@ -487,7 +527,7 @@ public class CCDTool{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(table_Results.getSelectionIndex() != -1) {
-					test_clonePairsDisplay();
+					test_ClonePairDisplay();
 					}
 				}
 			});
@@ -552,9 +592,14 @@ public class CCDTool{
 		fis.close();
 	}
 	
-	public static void clearDisplay() {
+	public static void test_ClearDisplay() {
 		table_File1.removeAll();
 		table_File2.removeAll();
+		
+		tree_Method1.removeAll();
+		tree_Method2.removeAll();
+		
+		table_Results.removeAll();
 		
 		sourceDis1Blank = true;
 		sourceDis2Blank = true;
@@ -565,15 +610,36 @@ public class CCDTool{
 		filePath2 = "";
 	}
 	
-	public static void test_MethodDisplay(Table tb, MethodList mList) {
+	public static void test_MethodDisplay(Tree tr, MethodList mList) {
 
 		for(int index = 0; index < mList.size(); index++) {
-			TableItem it = new TableItem(tb, SWT.NONE);
-			it.setText(new String[]{String.valueOf(index + 1), mList.getMethodVector(index).methodName});
+			TreeItem it = new TreeItem(tr, 0);
+			it.setText("  " + mList.getMethodVector(index).methodName);
+			
+			test_MethodAddInfo(it, mList, index, "Num");
+			test_MethodAddInfo(it, mList, index, "Type");
+			test_MethodAddInfo(it, mList, index, "Keyword");
+			test_MethodAddInfo(it, mList, index, "Marker");
+			test_MethodAddInfo(it, mList, index, "Operator");
+			test_MethodAddInfo(it, mList, index, "OtherStr");
+			test_MethodAddInfo(it, mList, index, "OtherChar");
 		}
 	}
 	
-	public static void cloneListDisplay(Table tb) {
+	public static void test_MethodAddInfo(TreeItem it, MethodList mList, int index, String str) {
+		int size = mList.getMethodVector(index).methodTokenList.getListByType(str).size();
+		if(size != 0) {
+			TreeItem it1 = new TreeItem(it, 0);
+			it1.setText(str);				
+			for(int index1 = 0; index1 < size; index1++) {
+				TreeItem it2 = new TreeItem(it1, 0);
+				TokenVector tv = mList.getMethodVector(index).methodTokenList.getListByType(str).getTokenVector(index1);
+				it2.setText(String.format("%d\t\t%s",  tv.TokenCount, tv.TokenName));
+		    }
+		}
+	}
+	
+	public static void test_CloneListDisplay() {
 		MethodSimilarity methodSim = new MethodSimilarity();
 		List<Result> rList = new ArrayList<Result>();
 		if(isSingleFile)
@@ -581,7 +647,7 @@ public class CCDTool{
 		else
 			rList = methodSim.simDetector(methodVectorList1, methodVectorList2);
 		for(int index = 0; index < rList.size(); index++) {
-			TableItem it = new TableItem(tb, SWT.NONE);
+			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
 					String.valueOf(rList.get(index).index),
 	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100)/100.0)),
@@ -595,7 +661,7 @@ public class CCDTool{
 		}
 	}
 	
-	public static void test_clonePairsDisplay() {
+	public static void test_ClonePairDisplay() {
 		int color_Index;
 		for(color_Index = 0; color_Index < table_File1.getItemCount(); color_Index++)
 			table_File1.getItem(color_Index).setBackground(1, Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
