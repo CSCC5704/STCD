@@ -11,7 +11,7 @@ public class MethodSimilarity {
 	public double simTokenType, simTokenKeyword, simTokenOtherStr;
 	public double simTokenMarker, simTokenOperator, simTokenOtherChar;
 	public double simTokenNum;
-	public double w1 = 0.1, w2 = 0.1, w3 = 0.1, w4 = 0.15, w5 = 0.15, w6 = 0.1, w7 = 0.1, w8 = 0.1, w9 = 0.1;
+	public double w0 = 0.1, w1 = 0.1, w2 = 0.1, w3 = 0.1, w4 = 0.15, w5 = 0.15, w6 = 0.1, w7 = 0.1, w8 = 0.1;
 	public double methodSimilarity;
 	
 	//public double tokenThreshold = 0.7;
@@ -49,7 +49,10 @@ public class MethodSimilarity {
 				tokenListDis += entry2.getValue();
 			tokenCount2 += entry2.getValue();
 		}
-		return 1 - tokenListDis / (tokenCount1 + tokenCount2);
+		if(tokenCount1 == 0 || tokenCount2 == 0)
+			return 0;
+		else
+			return 1 - tokenListDis / (tokenCount1 + tokenCount2);
 	}
 	
 	/*
@@ -67,7 +70,7 @@ public class MethodSimilarity {
 	}
 	*/
 	
-	public double methodVectorSim(MethodVector mVector1, MethodVector mVector2) {
+	public double[] methodVectorSim(MethodVector mVector1, MethodVector mVector2) {
 		// calculate methodPara's similarity 
 		BiGramSimilarity biGramSim = new BiGramSimilarity();
 		str1 = mVector1.methodPara;
@@ -81,6 +84,11 @@ public class MethodSimilarity {
 			simMethodType = 1;
 		else
 			simMethodType = 0;
+		
+		// calculate token_Num's similarity 
+		tokenList1 = mVector1.methodTokenList.getListByType("Num");
+		tokenList2 = mVector2.methodTokenList.getListByType("Num");
+		simTokenNum = tokenListSim(tokenList1, tokenList2);
 		
 		// calculate token_Type's similarity 
 		tokenList1 = mVector1.methodTokenList.getListByType("Type");
@@ -115,21 +123,15 @@ public class MethodSimilarity {
 		tokenList2 = mVector2.methodTokenList.getListByType("OtherChar");
 		simTokenOtherChar = tokenListSim(tokenList1, tokenList2);
 		
-		// calculate token_Num's similarity 
-		tokenList1 = mVector1.methodTokenList.getListByType("Num");
-		tokenList2 = mVector2.methodTokenList.getListByType("Num");
-		simTokenNum = tokenListSim(tokenList1, tokenList2);
-		
 		/*
-		System.out.printf("{%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f}", simMethodPara, simMethodType,
+		System.out.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", simMethodPara, simMethodType, simTokenNum, 
 				simTokenType, simTokenKeyword, simTokenOtherStr, simTokenMarker, simTokenOperator, 
 				simTokenOtherChar);
-		System.out.println();
 		*/
 		// calculate the similarity between two methods
-		return simMethodPara * w1 + simMethodType * w2 + simTokenType * w3 +
-				simTokenKeyword * w4 + simTokenOtherStr * w5 + simTokenMarker * w6 +
-				simTokenOperator * w7 + simTokenOtherChar * w8 + simTokenNum * w9;
+		return (new double[] {simMethodPara, simMethodType, simTokenNum, simTokenType,
+				simTokenKeyword, simTokenOtherStr, simTokenMarker, simTokenOperator,
+				simTokenOtherChar});
 	}
 	
 	// code clone detector for a single java file
@@ -140,7 +142,9 @@ public class MethodSimilarity {
 		
 		for(int index1 = 0; index1 < mList.size() - 1; index1++) {
 			for(int index2 = index1 + 1; index2 < mList.size(); index2++) {
-				methodSimilarity = methodVectorSim(mList.getMethodVector(index1), mList.getMethodVector(index2));
+				double[] paraSim = methodVectorSim(mList.getMethodVector(index1), mList.getMethodVector(index2));
+				methodSimilarity = paraSim[0] * w0 + paraSim[1] * w1 + paraSim[2] * w2 + paraSim[3] * w3 + paraSim[4] * w4
+						+ paraSim[5] * w5 + paraSim[6] * w6 + paraSim[7] * w7 + paraSim[8] * w8;
 				// output clone group
 				if(methodSimilarity >= detectThreshold
 						&& mList.getMethodVector(index1).endLineNumber - mList.getMethodVector(index1).startLineNumber > 7
@@ -171,7 +175,9 @@ public class MethodSimilarity {
 
 		for(int index1 = 0; index1 < mList1.size(); index1++) {
 			for(int index2 = 0; index2 < mList2.size(); index2++) {
-				methodSimilarity = methodVectorSim(mList1.getMethodVector(index1), mList2.getMethodVector(index2));
+				double[] paraSim = methodVectorSim(mList1.getMethodVector(index1), mList2.getMethodVector(index2));
+				methodSimilarity = paraSim[0] * w0 + paraSim[1] * w1 + paraSim[2] * w2 + paraSim[3] * w3 + paraSim[4] * w4
+						+ paraSim[5] * w5 + paraSim[6] * w6 + paraSim[7] * w7 + paraSim[8] * w8;
 				// output clone group
 				if(methodSimilarity >= detectThreshold
 						&& mList1.getMethodVector(index1).endLineNumber - mList1.getMethodVector(index1).startLineNumber > 7
@@ -193,4 +199,69 @@ public class MethodSimilarity {
 		}
 		return rList;
 	}
+	
+	// code clone detector for a single java file
+		public List<Result> simDetectorMLP(MultiplePerceptionTool MLP, double threshold, MethodList mList) {
+			
+			int countID = 1;
+			List<Result> rList = new ArrayList<Result>();
+			
+			for(int index1 = 0; index1 < mList.size() - 1; index1++) {
+				for(int index2 = index1 + 1; index2 < mList.size(); index2++) {
+					double[] paraSim = methodVectorSim(mList.getMethodVector(index1), mList.getMethodVector(index2));
+					
+					double[] output = MLP.cloneDetector(paraSim);
+					// output clone group
+					if(output[0] >= threshold
+							&& mList.getMethodVector(index1).endLineNumber - mList.getMethodVector(index1).startLineNumber > 7
+							&& mList.getMethodVector(index2).endLineNumber - mList.getMethodVector(index2).startLineNumber > 7) {
+						Result re = new Result();
+						re.index = countID;
+						re.similarity = output[0];
+						re.methodName1 = mList.getMethodVector(index1).methodName;
+						re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
+						re.endLineNum1 = mList.getMethodVector(index1).endLineNumber;
+						re.methodName2 = mList.getMethodVector(index2).methodName;
+						re.startLineNum2 = mList.getMethodVector(index2).startLineNumber;
+						re.endLineNum2 = mList.getMethodVector(index2).endLineNumber;
+						
+						rList.add(re);
+						countID++;
+					}
+				}
+			}
+			return rList;
+		}
+		
+		// code clone detector for two java files
+		public List<Result> simDetectorMLP(MultiplePerceptionTool MLP, double threshold, MethodList mList1, MethodList mList2) {
+			
+			int countID = 1;
+			List<Result> rList = new ArrayList<Result>();
+
+			for(int index1 = 0; index1 < mList1.size(); index1++) {
+				for(int index2 = 0; index2 < mList2.size(); index2++) {
+					double[] paraSim = methodVectorSim(mList1.getMethodVector(index1), mList2.getMethodVector(index2));
+					double[] output = MLP.cloneDetector(paraSim);
+					// output clone group
+					if(output[0] >= threshold
+							&& mList1.getMethodVector(index1).endLineNumber - mList1.getMethodVector(index1).startLineNumber > 7
+							&& mList2.getMethodVector(index2).endLineNumber - mList2.getMethodVector(index2).startLineNumber > 7) {
+						Result re = new Result();
+						re.index = countID;
+						re.similarity = output[0];
+						re.methodName1 = mList1.getMethodVector(index1).methodName;
+						re.startLineNum1 = mList1.getMethodVector(index1).startLineNumber;
+						re.endLineNum1 = mList1.getMethodVector(index1).endLineNumber;
+						re.methodName2 = mList2.getMethodVector(index2).methodName;
+						re.startLineNum2 = mList2.getMethodVector(index2).startLineNumber;
+						re.endLineNum2 = mList2.getMethodVector(index2).endLineNumber;
+						
+						rList.add(re);
+						countID++;
+					}
+				}
+			}
+			return rList;
+		}
 }

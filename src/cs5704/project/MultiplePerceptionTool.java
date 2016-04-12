@@ -38,7 +38,7 @@ public class MultiplePerceptionTool {
 				weight1[index1][index2] = Math.random() * 0.8 + 0.1;
 		for(int index1 = 0; index1 < weight2.length; index1++)
 			for(int index2 = 0; index2 < weight2[index1].length; index2++)
-				weight2[index1][index2] = Math.random()*0.8+0.1;
+				weight2[index1][index2] = Math.random() * 0.8 + 0.1;
 	}
 	
 	// train test data to get proper weights
@@ -100,7 +100,7 @@ public class MultiplePerceptionTool {
 	}
 	
 	// detect code clone with test data
-	public void cloneDetector(double[] similarity, int[] clone) {
+	public double[] cloneDetector(double[] similarity) {
 		
 		// the process is the same as the forward process in adjustWeight
 		for(int i = 0; i < similarity.length; i++)
@@ -113,18 +113,23 @@ public class MultiplePerceptionTool {
 			hiddenNodes[i] = 1 / ( 1 + Math.exp(-sum));
 		}
 		
+		double output[] = new double[1];
 		for(int i = 0; i < outputNodes.length; i++) {
 			double sum = 0;
 			for(int j = 0; j < hiddenNodes.length; j++)
 				sum = sum + weight2[j][i] * hiddenNodes[j];
-			outputNodes[i] = 1 / (1 + Math.exp(-sum));
+			//outputNodes[i] = 1 / (1 + Math.exp(-sum));
+			output[i] = 1 / (1 + Math.exp(-sum));
 		}
-		
+				
+		return output;
+		/*
 		for(int i = 0; i < outputNodes.length; i++) {
 			if(outputNodes[i] >= 0.5 )
 				clone[i] = 1;
 			else
 				clone[i] = 0;
 		}
+		*/
 	}
 }
