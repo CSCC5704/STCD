@@ -8,9 +8,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +27,9 @@ import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.wb.swt.SWTResourceManager;
+
+import com.apple.eawt.Application;
+
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -43,7 +51,7 @@ public class CCDTool{
 	
 	public static final String APP_NAME = "STCD";
 	
-	private static Text text_SelectDirectory;
+	private static Text train_SelectFile;
 	private static Slider slider_HiddenNodes;
 	private static Slider slider_TrainTimes;
 	private static Slider slider_Threshold;
@@ -60,6 +68,8 @@ public class CCDTool{
 	public static int train_TrainTimes = 100;
 	public static double train_Threshold = 0.75;
 	
+	public static Runnable task;
+	
 	public static MultiplePerceptionTool MLP;
 	public static double[][] train_Sim;	
 	public static int[][] train_Output;
@@ -67,8 +77,9 @@ public class CCDTool{
 	private static boolean sourceDis1Blank = true;
 	private static boolean sourceDis2Blank = true;
 	
-	private static String directoryPath = "";
-	private static String filePath1 = "", filePath2 = "";
+	private static String train_FilePath = "";
+	private static String train_DirPath = "";
+	private static String test_FilePath1 = "", test_FilePath2 = "";
 	private static boolean isSingleFile = true;
 	
 	public static ASTParserTool parserTool = new ASTParserTool();
@@ -100,16 +111,20 @@ public class CCDTool{
 		menu_Train_Open.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				DirectoryDialog train_DirectoryDialog = new DirectoryDialog(shell, SWT.OPEN);
-				train_DirectoryDialog.setFilterPath("sources");
-				String train_Directorypath = train_DirectoryDialog.open();
-				if(train_Directorypath != null) {
-					directoryPath = train_Directorypath;
-					text_SelectDirectory.setText(train_Directorypath);
+				FileDialog train_FileDialog = new FileDialog(shell, SWT.MULTI);
+				train_FileDialog.setFilterExtensions(new String[] {new String("*.java") });
+				train_FileDialog.setFilterPath("sources/TrainFiles");
+				if(train_FileDialog.open() != null) {
+					train_FilePath = "";
+					train_DirPath = train_FileDialog.getFilterPath();
+					String[] train_Filenames = train_FileDialog.getFileNames();
+					for(int i = 0; i < train_Filenames.length; i++)
+						train_FilePath += train_Filenames[i] + " ";
+					train_SelectFile.setText(train_FilePath);
 				}
 			}
 		});
-		menu_Train_Open.setText("Open Directory...");
+		menu_Train_Open.setText("Open Files...");
 		
 		MenuItem menu_Train_Reset = new MenuItem(menu_1, SWT.NONE);
 		menu_Train_Reset.addSelectionListener(new SelectionAdapter() {
@@ -117,8 +132,8 @@ public class CCDTool{
 			public void widgetSelected(SelectionEvent e) {
 				TRAIN_MODE = false;
 			
-				text_SelectDirectory.setText("");
-				directoryPath = "";
+				train_SelectFile.setText("");
+				train_FilePath = "";
 				
 				slider_HiddenNodes.setSelection(0);
 				slider_TrainTimes.setSelection(0);
@@ -137,12 +152,12 @@ public class CCDTool{
 		MenuItem menu_Train_Run = new MenuItem(menu_1, SWT.NONE);
 		menu_Train_Run.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(directoryPath != "") {
+			public void widgetSelected(SelectionEvent e) {				
+				if(train_FilePath != "") {
 					TRAIN_MODE = true;
 					
 					try {
-						load_TrainData();
+						read_TrainData(train_FilePath);
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -186,9 +201,9 @@ public class CCDTool{
 				String test_Filepath = test_FileDialog.open();
 				if(test_Filepath != null) {
 					if(sourceDis1Blank) {
-						filePath1 = test_Filepath;
+						test_FilePath1 = test_Filepath;
 						try {
-							test_CodeDisplay(table_File1, filePath1);
+							test_CodeDisplay(table_File1, test_FilePath1);
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -196,13 +211,13 @@ public class CCDTool{
 						sourceDis1Blank = false;
 						}
 					else if(sourceDis2Blank) {
-						filePath2 = test_Filepath;
-						if(filePath2.equals(filePath1))
+						test_FilePath2 = test_Filepath;
+						if(test_FilePath2.equals(test_FilePath1))
 							isSingleFile = true;
 						else
 							isSingleFile = false;
 						try {
-							test_CodeDisplay(table_File2, filePath2);
+							test_CodeDisplay(table_File2, test_FilePath2);
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -211,9 +226,9 @@ public class CCDTool{
 						}
 					else {
 						test_ClearDisplay();
-						filePath1 = test_Filepath;
+						test_FilePath1 = test_Filepath;
 						try {
-							test_CodeDisplay(table_File1, filePath1);
+							test_CodeDisplay(table_File1, test_FilePath1);
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -243,19 +258,19 @@ public class CCDTool{
 					tree_Method2.removeAll();
 					table_Results.removeAll();
 					
-					methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
+					methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(test_FilePath1));
 					test_MethodDisplay(tree_Method1, methodVectorList1);
 					if(sourceDis2Blank) {
-						filePath2 = filePath1;
+						test_FilePath2 = test_FilePath1;
 						try {
-							test_CodeDisplay(table_File2, filePath2);
+							test_CodeDisplay(table_File2, test_FilePath2);
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						sourceDis2Blank = false;
 					}
-					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath2));
+					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(test_FilePath2));
 					test_MethodDisplay(tree_Method2, methodVectorList2);
 					
 					if(TRAIN_MODE)
@@ -307,12 +322,12 @@ public class CCDTool{
 		lblDirectoryPath.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		lblDirectoryPath.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		lblDirectoryPath.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		lblDirectoryPath.setText("Directory Path");
+		lblDirectoryPath.setText("Training Files");
 		
-		text_SelectDirectory = new Text(com_TrainFile, SWT.BORDER);
-		text_SelectDirectory.setEditable(false);
-		text_SelectDirectory.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
-		text_SelectDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		train_SelectFile = new Text(com_TrainFile, SWT.BORDER);
+		train_SelectFile.setEditable(false);
+		train_SelectFile.setFont(SWTResourceManager.getFont(".SF NS Text", 10, SWT.NORMAL));
+		train_SelectFile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label label_1 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
 		
@@ -624,18 +639,60 @@ public class CCDTool{
 		display.dispose();
 	}
 	
-	public static void load_TrainData() throws IOException {
-		FileInputStream fis = new FileInputStream("sources/TestFiles/TrainData.txt");
+	public static void read_TrainData(String train_FilePath) throws IOException {
+		String[] fileNameList = train_FilePath.split(" ");
+		
+		File file = new File(train_DirPath + "/TrainData.txt");
+		if(!file.exists())
+			file.createNewFile();
+		
+		PrintWriter writer = new PrintWriter(file.getAbsolutePath(), "UTF-8");
+		
+		for (int i = 0; i < fileNameList.length; i++) {
+			methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(train_DirPath + "/" + fileNameList[i]));
+			
+			int totalSize = methodVectorList1.size() * (methodVectorList1.size() - 1) / 2;
+			int methodCmpCount = 0;
+						
+			train_Sim = new double[totalSize][9];
+			train_Output = new int[totalSize][1];
+
+			MethodSimilarity methodSim = new MethodSimilarity();
+			for(int index1 = 0; index1 < methodVectorList1.size() - 1; index1++) {
+				for(int index2 = index1 + 1; index2 < methodVectorList1.size(); index2++) {
+					train_Sim[methodCmpCount] = methodSim.methodVectorSim(methodVectorList1.getMethodVector(index1), methodVectorList1.getMethodVector(index2));	
+					methodCmpCount++;
+				}
+			}
+			for(int index1 = 0; index1 < totalSize; index1++)
+				train_Output[index1][0] = methodSim.simDetectorForTrain(methodVectorList1)[index1];
+			
+			for(int index1 = 0; index1 < totalSize; index1++) {
+				writer.write(String.format("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", 
+						train_Sim[index1][0], train_Sim[index1][1], train_Sim[index1][2], train_Sim[index1][3], 
+						train_Sim[index1][4], train_Sim[index1][5], train_Sim[index1][6], train_Sim[index1][7],
+						train_Sim[index1][8]));
+				writer.write(String.valueOf(train_Output[index1][0] + "\n"));
+			}
+		}
+		writer.close();
+		
+		FileInputStream fis = new FileInputStream("sources/TrainFiles/TrainData.txt");
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 		
-		int total_Line = Integer.parseInt(br.readLine());
-		train_Sim = new double[total_Line][9];
-		train_Output = new int[total_Line][1];
-		for(int index = 0; index < total_Line; index++) {
-			String[] currentLine = br.readLine().split(",");
+		String currentLine = "";
+		List<String> list = new ArrayList<String>();
+        while((currentLine = br.readLine()) != null){
+            list.add(currentLine);
+        }
+        
+		train_Sim = new double[list.size()][9];
+		train_Output = new int[list.size()][1];
+		for(int index = 0; index < list.size(); index++) {
+			String[] currentPara = list.get(index).split(",");
 			for(int pos = 0; pos < 9; pos++)
-				train_Sim[index][pos] = Double.parseDouble(currentLine[pos]);
-			train_Output[index][0] = Integer.parseInt(currentLine[9]);
+				train_Sim[index][pos] = Double.parseDouble(currentPara[pos]);
+			train_Output[index][0] = Integer.parseInt(currentPara[9]);
 		}
 		fis.close();
 	}
@@ -667,8 +724,8 @@ public class CCDTool{
 		
 		isSingleFile = true;
 		
-		filePath1 = "";
-		filePath2 = "";
+		test_FilePath1 = "";
+		test_FilePath2 = "";
 	}
 	
 	public static void test_MethodDisplay(Tree tr, MethodList mList) {
