@@ -239,6 +239,10 @@ public class CCDTool{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(!sourceDis1Blank) {
+					tree_Method1.removeAll();
+					tree_Method2.removeAll();
+					table_Results.removeAll();
+					
 					methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(filePath1));
 					test_MethodDisplay(tree_Method1, methodVectorList1);
 					if(sourceDis2Blank) {
@@ -454,7 +458,7 @@ public class CCDTool{
 		
 		Label label_File1 = new Label(com_File1, SWT.NONE);
 		label_File1.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_File1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_File1.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
 		label_File1.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
 		label_File1.setText("File1");
 		
@@ -478,7 +482,7 @@ public class CCDTool{
 		com_File2.setLayout(new GridLayout(1, false));
 		
 		Label label_File2 = new Label(com_File2, SWT.NONE);
-		label_File2.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_File2.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
 		label_File2.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_File2.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1));
 		label_File2.setText("File2");
@@ -510,7 +514,7 @@ public class CCDTool{
 		Label label_Method1 = new Label(com_Method1, SWT.NONE);
 		label_Method1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		label_Method1.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Method1.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
 		label_Method1.setText("Method1");
 		
 		tree_Method1 = new Tree(com_Method1, SWT.BORDER | SWT.FULL_SELECTION);
@@ -523,7 +527,7 @@ public class CCDTool{
 		
 		TreeColumn tree_Method1_Method = new TreeColumn(tree_Method1, SWT.LEFT);
 		tree_Method1_Method.setWidth(213);
-		tree_Method1_Method.setText("  Method Name");
+		tree_Method1_Method.setText("  Method Tree");
 		
 		Composite com_Method2 = new Composite(group_Testing, SWT.NONE);
 		GridData gd_com_Method2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
@@ -534,7 +538,7 @@ public class CCDTool{
 		Label label_Method2 = new Label(com_Method2, SWT.NONE);
 		label_Method2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		label_Method2.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Method2.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
 		label_Method2.setText("Method2");
 		
 		tree_Method2 = new Tree(com_Method2, SWT.BORDER | SWT.FULL_SELECTION);
@@ -547,19 +551,20 @@ public class CCDTool{
 		
 		TreeColumn tree_Method2_Method = new TreeColumn(tree_Method2, SWT.LEFT);
 		tree_Method2_Method.setWidth(211);
-		tree_Method2_Method.setText("  Method Name");
+		tree_Method2_Method.setText("  Method Tree");
 		
 		Label label_6 = new Label(group_Testing, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label_6.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 		
 		Composite com_Results = new Composite(group_Testing, SWT.NONE);
+		com_Results.setBackground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		com_Results.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		com_Results.setLayout(new GridLayout(1, false));
 		
 		Label label_Results = new Label(com_Results, SWT.NONE);
 		label_Results.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false, 1, 1));
-		label_Results.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_Results.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
+		label_Results.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		label_Results.setFont(SWTResourceManager.getFont(".SF NS Text", 14, SWT.BOLD));
 		label_Results.setText("Results");
 		
 		table_Results = new Table(com_Results, SWT.BORDER | SWT.FULL_SELECTION);
