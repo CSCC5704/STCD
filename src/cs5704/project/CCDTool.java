@@ -52,6 +52,9 @@ public class CCDTool{
 	public static final String APP_NAME = "STCD";
 	
 	private static Text train_SelectFile;
+	private static Label lable_HiddenNodes;
+	private static Label label_TrainingTimes;
+	private static Label label_Threshold;
 	private static Slider slider_HiddenNodes;
 	private static Slider slider_TrainTimes;
 	private static Slider slider_Threshold;
@@ -142,6 +145,10 @@ public class CCDTool{
 				train_HiddenNodes = 5;
 				train_TrainTimes = 100;
 				train_Threshold = 0.75;
+				
+				lable_HiddenNodes.setText("Hidden Nodes: 5");
+				label_TrainingTimes.setText("Training Times: 100");
+				label_Threshold.setText("0.75");
 				
 				label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
 				label_TrainStatus.setText("Untrained!");
@@ -273,10 +280,14 @@ public class CCDTool{
 					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(test_FilePath2));
 					test_MethodDisplay(tree_Method2, methodVectorList2);
 					
+					long start_Time = System.currentTimeMillis();
 					if(TRAIN_MODE)
 						test_Train_CloneListDisplay();
 					else
 						test_NoTrain_CloneListDisplay();
+					long end_Time = System.currentTimeMillis();
+					long run_Time = (end_Time - start_Time);
+					System.out.println("Run Time: " + run_Time + "ms");
 				}
 				else {
 					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
@@ -336,7 +347,7 @@ public class CCDTool{
 		com_HiddenNodes.setLayout(new GridLayout(3, false));
 		new Label(com_HiddenNodes, SWT.NONE);
 		
-		Label lable_HiddenNodes = new Label(com_HiddenNodes, SWT.NONE);
+		lable_HiddenNodes = new Label(com_HiddenNodes, SWT.NONE);
 		lable_HiddenNodes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		lable_HiddenNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		lable_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -374,7 +385,7 @@ public class CCDTool{
 		com_TrainTimes.setLayout(new GridLayout(3, false));
 		new Label(com_TrainTimes, SWT.NONE);
 		
-		Label label_TrainingTimes = new Label(com_TrainTimes, SWT.NONE);
+		label_TrainingTimes = new Label(com_TrainTimes, SWT.NONE);
 		label_TrainingTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_TrainingTimes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_TrainingTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
@@ -411,7 +422,7 @@ public class CCDTool{
 		com_Threshold.setLayout(new GridLayout(3, false));
 		new Label(com_Threshold, SWT.NONE);
 		
-		Label label_Threshold = new Label(com_Threshold, SWT.NONE);
+		label_Threshold = new Label(com_Threshold, SWT.NONE);
 		label_Threshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_Threshold.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
@@ -764,6 +775,7 @@ public class CCDTool{
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1);
 		else
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1, methodVectorList2);
+		System.out.println(methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
@@ -786,6 +798,7 @@ public class CCDTool{
 			rList = methodSim.simDetector(methodVectorList1);
 		else
 			rList = methodSim.simDetector(methodVectorList1, methodVectorList2);
+		System.out.println(methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
@@ -818,13 +831,19 @@ public class CCDTool{
         int test_ColorLine1 = Integer.valueOf(item.getText(3)) - 1;
 		int test_ScrollLine1 = Integer.valueOf(item.getText(4));
 		table_File1.setSelection(0);
-		table_File1.setSelection(test_ColorLine1 + visibleCount - 5);
+		if(test_ColorLine1 + visibleCount - 5 < table_File1.getItemCount())
+			table_File1.setSelection(test_ColorLine1 + visibleCount - 5);
+		else
+			table_File1.setSelection(test_ScrollLine1);
 		table_File1.deselect(table_File1.getSelectionIndex());
 		
 		int test_ColorLine2 = Integer.valueOf(item.getText(6)) - 1;
 		int test_ScrollLine2 = Integer.valueOf(item.getText(7));
 		table_File2.setSelection(0);
-		table_File2.setSelection(test_ColorLine2 + visibleCount - 5);
+		if(test_ColorLine2 + visibleCount - 5 < table_File2.getItemCount())
+			table_File2.setSelection(test_ColorLine2 + visibleCount - 5);
+		else
+			table_File2.setSelection(test_ScrollLine2);
 		table_File2.deselect(table_File2.getSelectionIndex());
 		
 		for(color_Index = test_ColorLine1; color_Index < test_ScrollLine1; color_Index++)
