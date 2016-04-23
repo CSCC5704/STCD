@@ -15,7 +15,7 @@ public class MethodSimilarity {
 	public double methodSimilarity;
 	
 	public double tokenThreshold = 0.7;
-	public double detectThreshold = 0.6;
+	public double detectThreshold = 0.65;
 		
 	public String str1, str2;
 	public TokenList tokenList1, tokenList2;
@@ -119,11 +119,6 @@ public class MethodSimilarity {
 		tokenList2 = mVector2.methodTokenList.getListByType("OtherChar");
 		simTokenOtherChar = tokenListSim(tokenList1, tokenList2);
 		
-		/*
-		System.out.printf("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f", simMethodPara, simMethodType, simTokenNum, 
-				simTokenType, simTokenKeyword, simTokenOtherStr, simTokenMarker, simTokenOperator, 
-				simTokenOtherChar);
-		*/
 		// calculate the similarity between two methods
 		return (new double[] {simMethodPara, simMethodType, simTokenNum, simTokenType,
 				simTokenKeyword, simTokenOtherStr, simTokenMarker, simTokenOperator,
@@ -141,6 +136,7 @@ public class MethodSimilarity {
 				double[] paraSim = methodVectorSim(mList.getMethodVector(index1), mList.getMethodVector(index2));
 				methodSimilarity = paraSim[0] * w0 + paraSim[1] * w1 + paraSim[2] * w2 + paraSim[3] * w3 + paraSim[4] * w4
 						+ paraSim[5] * w5 + paraSim[6] * w6 + paraSim[7] * w7 + paraSim[8] * w8;
+				
 				int methodLines1 = mList.getMethodVector(index1).endLineNumber - mList.getMethodVector(index1).startLineNumber;
 				int methodLines2 = mList.getMethodVector(index2).endLineNumber - mList.getMethodVector(index2).startLineNumber;
 				// output clone group
@@ -148,8 +144,10 @@ public class MethodSimilarity {
 						&& methodLines1 > 7 
 						&& methodLines2 > 7 
 						&& Math.abs(methodLines1 - methodLines2) / Math.min(methodLines1, methodLines2) < 0.6) {
+					System.out.println(1);
 					Result re = new Result();
-					re.index = countID;
+//					re.index = countID;
+					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
 					re.similarity = methodSimilarity;
 					re.methodName1 = mList.getMethodVector(index1).methodName;
 					re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
@@ -161,6 +159,8 @@ public class MethodSimilarity {
 					rList.add(re);
 					countID++;
 				}
+				else
+					System.out.println(0);
 			}
 		}
 		return rList;
@@ -220,8 +220,10 @@ public class MethodSimilarity {
 						&& methodLines1 > 7 
 						&& methodLines2 > 7 
 						&& Math.abs(methodLines1 - methodLines2) / Math.min(methodLines1, methodLines2) < 0.6) {
+					System.out.println(1);
 					Result re = new Result();
-					re.index = countID;
+//					re.index = countID;
+					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
 					re.similarity = output[0];
 					re.methodName1 = mList.getMethodVector(index1).methodName;
 					re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
@@ -233,6 +235,8 @@ public class MethodSimilarity {
 					rList.add(re);
 					countID++;
 				}
+				else
+					System.out.println(0);
 			}
 		}
 		return rList;

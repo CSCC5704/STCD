@@ -67,9 +67,9 @@ public class CCDTool{
 	
 	public static boolean TRAIN_MODE = false;
 	
-	public static int train_HiddenNodes = 5;
-	public static int train_TrainTimes = 100;
-	public static double train_Threshold = 0.75;
+	public static int train_HiddenNodes = 10;
+	public static int train_TrainTimes = 200;
+	public static double train_Threshold = 0.87;
 	
 	public static Runnable task;
 	
@@ -115,7 +115,7 @@ public class CCDTool{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog train_FileDialog = new FileDialog(shell, SWT.MULTI);
-				train_FileDialog.setFilterExtensions(new String[] {new String("*.java") });
+				train_FileDialog.setFilterExtensions(new String[] {new String("*.txt") });
 				train_FileDialog.setFilterPath("sources/TrainFiles");
 				if(train_FileDialog.open() != null) {
 					train_FilePath = "";
@@ -138,17 +138,17 @@ public class CCDTool{
 				train_SelectFile.setText("");
 				train_FilePath = "";
 				
-				slider_HiddenNodes.setSelection(0);
-				slider_TrainTimes.setSelection(0);
-				slider_Threshold.setSelection(0);
+				slider_HiddenNodes.setSelection(5);
+				slider_TrainTimes.setSelection(10);
+				slider_Threshold.setSelection(12);
 				
-				train_HiddenNodes = 5;
-				train_TrainTimes = 100;
-				train_Threshold = 0.75;
+				train_HiddenNodes = 10;
+				train_TrainTimes = 200;
+				train_Threshold = 0.87;
 				
-				lable_HiddenNodes.setText("Hidden Nodes: 5");
-				label_TrainingTimes.setText("Training Times: 100");
-				label_Threshold.setText("0.75");
+				lable_HiddenNodes.setText("Hidden Nodes: 10");
+				label_TrainingTimes.setText("Training Times: 200");
+				label_Threshold.setText("Threshold: 0.87");
 				
 				label_TrainStatus.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
 				label_TrainStatus.setText("Untrained!");
@@ -260,7 +260,10 @@ public class CCDTool{
 		menu_Test_Run.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(!sourceDis1Blank) {
+				if(!sourceDis1Blank) {				
+					methodVectorList1.clear();
+					methodVectorList2.clear();
+					
 					tree_Method1.removeAll();
 					tree_Method2.removeAll();
 					table_Results.removeAll();
@@ -287,7 +290,7 @@ public class CCDTool{
 						test_NoTrain_CloneListDisplay();
 					long end_Time = System.currentTimeMillis();
 					long run_Time = (end_Time - start_Time);
-					System.out.println("Run Time: " + run_Time + "ms");
+					System.out.println("Running Time: " + run_Time + "ms");
 				}
 				else {
 					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
@@ -351,7 +354,7 @@ public class CCDTool{
 		lable_HiddenNodes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		lable_HiddenNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		lable_HiddenNodes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		lable_HiddenNodes.setText("Hidden Nodes: 5");
+		lable_HiddenNodes.setText("Hidden Nodes: 10");
 		
 		Label label_MinNodes = new Label(com_HiddenNodes, SWT.NONE);
 		label_MinNodes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
@@ -364,7 +367,7 @@ public class CCDTool{
 		slider_HiddenNodes.setPageIncrement(1);
 		slider_HiddenNodes.setMaximum(11);
 		slider_HiddenNodes.setMinimum(0);
-		slider_HiddenNodes.setSelection(0);
+		slider_HiddenNodes.setSelection(5);
 		
 		slider_HiddenNodes.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -389,7 +392,7 @@ public class CCDTool{
 		label_TrainingTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_TrainingTimes.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_TrainingTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		label_TrainingTimes.setText("Training Times: 100");
+		label_TrainingTimes.setText("Training Times: 200");
 		
 		Label label_MinTimes = new Label(com_TrainTimes, SWT.NONE);
 		label_MinTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
@@ -399,13 +402,13 @@ public class CCDTool{
 		slider_TrainTimes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		slider_TrainTimes.setThumb(1);
 		slider_TrainTimes.setPageIncrement(1);
-		slider_TrainTimes.setMaximum(9);
+		slider_TrainTimes.setMaximum(11);
 		slider_TrainTimes.setMinimum(0);
-		slider_TrainTimes.setSelection(0);
+		slider_TrainTimes.setSelection(10);
 		
 		slider_TrainTimes.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				train_TrainTimes = 50 * (slider_TrainTimes.getSelection() + 2);
+				train_TrainTimes = slider_TrainTimes.getSelection() * 10 + 100 ;
 				label_TrainingTimes.setText("Training Times: " + train_TrainTimes);
 				}
 			}
@@ -413,7 +416,7 @@ public class CCDTool{
 		
 		Label label_MaxTimes = new Label(com_TrainTimes, SWT.NONE);
 		label_MaxTimes.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
-		label_MaxTimes.setText("500");
+		label_MaxTimes.setText("200");
 		
 		Label label_3 = new Label(group_Training, SWT.SEPARATOR | SWT.VERTICAL);
 		
@@ -426,7 +429,7 @@ public class CCDTool{
 		label_Threshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
 		label_Threshold.setFont(SWTResourceManager.getFont(".SF NS Text", 11, SWT.BOLD));
 		label_Threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		label_Threshold.setText("Threshold: 0.75");
+		label_Threshold.setText("Threshold: 0.87");
 		
 		Label label_MinThreshold = new Label(com_Threshold, SWT.NONE);
 		label_MinThreshold.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_GRAY));
@@ -438,7 +441,7 @@ public class CCDTool{
 		slider_Threshold.setPageIncrement(1);
 		slider_Threshold.setMaximum(21);
 		slider_Threshold.setMinimum(0);
-		slider_Threshold.setSelection(0);
+		slider_Threshold.setSelection(12);
 		
 		slider_Threshold.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -651,61 +654,46 @@ public class CCDTool{
 	}
 	
 	public static void read_TrainData(String train_FilePath) throws IOException {
+		
 		String[] fileNameList = train_FilePath.split(" ");
-		
-		File file = new File(train_DirPath + "/TrainData.txt");
-		if(!file.exists())
-			file.createNewFile();
-		
-		PrintWriter writer = new PrintWriter(file.getAbsolutePath(), "UTF-8");
+		List<String> list = new ArrayList<String>();
 		
 		for (int i = 0; i < fileNameList.length; i++) {
-			methodVectorList1 = parserTool.parseMethod(parserTool.getCompilationUnit(train_DirPath + "/" + fileNameList[i]));
+			FileInputStream fis = new FileInputStream(train_DirPath + "/" + fileNameList[i]);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 			
-			int totalSize = methodVectorList1.size() * (methodVectorList1.size() - 1) / 2;
-			int methodCmpCount = 0;
-						
-			train_Sim = new double[totalSize][9];
-			train_Output = new int[totalSize][1];
-
-			MethodSimilarity methodSim = new MethodSimilarity();
-			for(int index1 = 0; index1 < methodVectorList1.size() - 1; index1++) {
-				for(int index2 = index1 + 1; index2 < methodVectorList1.size(); index2++) {
-					train_Sim[methodCmpCount] = methodSim.methodVectorSim(methodVectorList1.getMethodVector(index1), methodVectorList1.getMethodVector(index2));	
-					methodCmpCount++;
-				}
+			String currentLine = "";
+			while((currentLine = br.readLine()) != null) {
+				list.add(currentLine);
 			}
-			for(int index1 = 0; index1 < totalSize; index1++)
-				train_Output[index1][0] = methodSim.simDetectorForTrain(methodVectorList1)[index1];
-			
-			for(int index1 = 0; index1 < totalSize; index1++) {
-				writer.write(String.format("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,", 
-						train_Sim[index1][0], train_Sim[index1][1], train_Sim[index1][2], train_Sim[index1][3], 
-						train_Sim[index1][4], train_Sim[index1][5], train_Sim[index1][6], train_Sim[index1][7],
-						train_Sim[index1][8]));
-				writer.write(String.valueOf(train_Output[index1][0] + "\n"));
-			}
+			fis.close();
 		}
-		writer.close();
 		
-		FileInputStream fis = new FileInputStream("sources/TrainFiles/TrainData.txt");
-		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+		int count_One = 0;
+		int count_Zero = 0;
+		int sub_Count = 0;
 		
-		String currentLine = "";
-		List<String> list = new ArrayList<String>();
-        while((currentLine = br.readLine()) != null){
-            list.add(currentLine);
-        }
-        
-		train_Sim = new double[list.size()][9];
-		train_Output = new int[list.size()][1];
+		train_Sim = new double[200][9];
+		train_Output = new int[200][1];
 		for(int index = 0; index < list.size(); index++) {
 			String[] currentPara = list.get(index).split(",");
-			for(int pos = 0; pos < 9; pos++)
-				train_Sim[index][pos] = Double.parseDouble(currentPara[pos]);
-			train_Output[index][0] = Integer.parseInt(currentPara[9]);
+			if(Integer.parseInt(currentPara[9]) == 1 && count_One < 50) {
+				train_Output[sub_Count][0] = Integer.parseInt(currentPara[9]);
+				for(int pos = 0; pos < 9; pos++)
+					train_Sim[sub_Count][pos] = Double.parseDouble(currentPara[pos]);
+				count_One++;
+				sub_Count++;
+			}
+			else if(Integer.parseInt(currentPara[9]) == 0 && count_Zero < 150) {
+				train_Output[sub_Count][0] = Integer.parseInt(currentPara[9]);
+				for(int pos = 0; pos < 9; pos++)
+					train_Sim[sub_Count][pos] = Double.parseDouble(currentPara[pos]);
+				count_Zero++;
+				sub_Count++;
+			}
+			else
+				continue;
 		}
-		fis.close();
 	}
 	
 	public static void test_CodeDisplay(Table tb, String filePath) throws IOException {
@@ -775,12 +763,12 @@ public class CCDTool{
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1);
 		else
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1, methodVectorList2);
-		System.out.println(methodVectorList1.size());
+		System.out.println("Methods Num: " + methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
 					String.valueOf(rList.get(index).index),
-	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100)/100.0)),
+	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100) / 100.0)),
 	    			rList.get(index).methodName1,
 	    			String.valueOf(rList.get(index).startLineNum1),
 	    			String.valueOf(rList.get(index).endLineNum1 + 1),
@@ -798,12 +786,12 @@ public class CCDTool{
 			rList = methodSim.simDetector(methodVectorList1);
 		else
 			rList = methodSim.simDetector(methodVectorList1, methodVectorList2);
-		System.out.println(methodVectorList1.size());
+		System.out.println("Methods Num: " + methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
 					String.valueOf(rList.get(index).index),
-	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100)/100.0)),
+	    			String.valueOf((double)(Math.round(rList.get(index).similarity * 100) / 100.0)),
 	    			rList.get(index).methodName1,
 	    			String.valueOf(rList.get(index).startLineNum1),
 	    			String.valueOf(rList.get(index).endLineNum1 + 1),
