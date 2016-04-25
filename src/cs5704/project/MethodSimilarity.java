@@ -144,10 +144,10 @@ public class MethodSimilarity {
 						&& methodLines1 > 7 
 						&& methodLines2 > 7 
 						&& Math.abs(methodLines1 - methodLines2) / Math.min(methodLines1, methodLines2) < 0.6) {
-					System.out.println(1);
+//					System.out.println(1);
 					Result re = new Result();
-//					re.index = countID;
-					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
+					re.index = countID;
+//					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
 					re.similarity = methodSimilarity;
 					re.methodName1 = mList.getMethodVector(index1).methodName;
 					re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
@@ -159,8 +159,8 @@ public class MethodSimilarity {
 					rList.add(re);
 					countID++;
 				}
-				else
-					System.out.println(0);
+//				else
+//					System.out.println(0);
 			}
 		}
 		return rList;
@@ -220,10 +220,10 @@ public class MethodSimilarity {
 						&& methodLines1 > 7 
 						&& methodLines2 > 7 
 						&& Math.abs(methodLines1 - methodLines2) / Math.min(methodLines1, methodLines2) < 0.6) {
-					System.out.println(1);
+//					System.out.println(1);
 					Result re = new Result();
-//					re.index = countID;
-					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
+					re.index = countID;
+//					re.index = mList.size() * index1 + index2 + 1 - (index1 + 1) * (index1 + 2) / 2;
 					re.similarity = output[0];
 					re.methodName1 = mList.getMethodVector(index1).methodName;
 					re.startLineNum1 = mList.getMethodVector(index1).startLineNumber;
@@ -235,8 +235,8 @@ public class MethodSimilarity {
 					rList.add(re);
 					countID++;
 				}
-				else
-					System.out.println(0);
+//				else
+//					System.out.println(0);
 			}
 		}
 		return rList;

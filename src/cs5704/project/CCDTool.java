@@ -204,6 +204,7 @@ public class CCDTool{
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog test_FileDialog = new FileDialog(shell, SWT.OPEN);
+				test_FileDialog.setFilterExtensions(new String[] {new String("*.java") });
 				test_FileDialog.setFilterPath("sources/TestFiles/");
 				String test_Filepath = test_FileDialog.open();
 				if(test_Filepath != null) {
@@ -283,14 +284,14 @@ public class CCDTool{
 					methodVectorList2 = parserTool.parseMethod(parserTool.getCompilationUnit(test_FilePath2));
 					test_MethodDisplay(tree_Method2, methodVectorList2);
 					
-					long start_Time = System.currentTimeMillis();
+//					long start_Time = System.currentTimeMillis();
 					if(TRAIN_MODE)
 						test_Train_CloneListDisplay();
 					else
 						test_NoTrain_CloneListDisplay();
-					long end_Time = System.currentTimeMillis();
-					long run_Time = (end_Time - start_Time);
-					System.out.println("Running Time: " + run_Time + "ms");
+//					long end_Time = System.currentTimeMillis();
+//					long run_Time = (end_Time - start_Time);
+//					System.out.println("Running Time: " + run_Time + "ms");
 				}
 				else {
 					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
@@ -763,7 +764,7 @@ public class CCDTool{
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1);
 		else
 			rList = methodSim.simDetectorMLP(MLP, train_Threshold, methodVectorList1, methodVectorList2);
-		System.out.println("Methods Num: " + methodVectorList1.size());
+//		System.out.println("Methods Num: " + methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
@@ -786,7 +787,7 @@ public class CCDTool{
 			rList = methodSim.simDetector(methodVectorList1);
 		else
 			rList = methodSim.simDetector(methodVectorList1, methodVectorList2);
-		System.out.println("Methods Num: " + methodVectorList1.size());
+//		System.out.println("Methods Num: " + methodVectorList1.size());
 		for(int index = 0; index < rList.size(); index++) {
 			TableItem it = new TableItem(table_Results, SWT.NONE);
 			it.setText(new String[]{
